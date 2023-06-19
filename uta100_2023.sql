@@ -107,9 +107,9 @@ CREATE TABLE uta100_athlete (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,                              --  Id
 
     name        TEXT NOT NULL,                                                  --  name
+    bib         INTEGER NOT NULL,                                               --  BIB number
     category    INTEGER NOT NULL,                                               --  category id
     gender      INTEGER NOT NULL,                                               --  gender id
-    bib         INTEGER NOT NULL,                                               --  BIB number
     racetime    TEXT,                                                           --  race time
     tpos        INTEGER,                                                        --  ovarall position
     cpos        INTEGER,                                                        --  category position
