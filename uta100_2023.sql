@@ -107,7 +107,7 @@ CREATE TABLE uta100_athlete (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,                              --  Id
 
     name        TEXT NOT NULL,                                                  --  name
-    bib         INTEGER NOT NULL,                                               --  BIB number
+    bib         INTEGER NOT NULL,                                               --  bib number
     category    INTEGER NOT NULL,                                               --  category id
     gender      INTEGER NOT NULL,                                               --  gender id
     racetime    TEXT,                                                           --  race time
@@ -119,19 +119,20 @@ CREATE TABLE uta100_athlete (
 );
 
 -- Result table --------------------------------------------------------------------------------
-DROP TABLE IF EXISTS uta100_result;
-CREATE TABLE uta100_result (
+DROP TABLE IF EXISTS uta100_raceresult;
+CREATE TABLE uta100_raceresult (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,                              --  Id
 
     pid         INTEGER NOT NULL,                                               --  athlete Id
-    lid         INTEGER NOT NULL,                                               --  location Id
+    bib         INTEGER NOT NULL,                                               --  bib number
+    location    INTEGER NOT NULL,                                               --  location Id
     splittime   TEXT NOT NULL,                                                  --  the split time
     racetime    TEXT NOT NULL,                                                  --  the race time
     tpos        INTEGER,                                                        --  overall position
-    gpos        INTEGER,                                                        --  gender position
     cpos        INTEGER,                                                        --  category position
+    gpos        INTEGER,                                                        --  gender position
     speed       REAL,                                                           --  speed
-    pace        TEXT,                                                           --  pace
+    pace        REAL,                                                           --  pace
     tod         TEXT NOT NULL                                                   --  time of day
 );
 
