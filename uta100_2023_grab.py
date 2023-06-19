@@ -25,15 +25,37 @@ GenderList = [
 	"Male",
 	"Female"
 ]
+LocationList = [
+	"Start",
+	"Scenic World",
+	"Furber Pass",
+	"Golden Stairs",
+	"Duncan Pass",
+	"Foggy Knob Arrive",
+	"Foggy Knob Depart",
+	"IronPot",
+	"Six Ft Track Arrive",
+	"Six Ft Track Depart",
+	"Aquatic Centre Arrive",
+	"Aquatic Centre Depart",
+	"Fairmount Arrive",
+	"Fairmount Depart",
+	"QVH Arrive",
+	"QVH Depart",
+	"TWM",
+	"Furber Stairs",
+	"BoardWalk",
+	"Finish"
+]
 
 def cleanPreviousResultData(utaDb):
 	pCur = utaDb.cursor()
 
 	pCur.execute( "begin transaction;" )
-	pCur.execute( "delete from uta100_athlete;" )								# clean the table of athlete
-	pCur.execute( "delete from sqlite_sequence where name='uta100_athlete';" )	# reset the auto increment field
-	pCur.execute( "delete from uta100_result;" )								# clean the table of race result
-	pCur.execute( "delete from sqlite_sequence where name='uta100_result';" )	# reset the auto increment field
+	#--	pCur.execute( "delete from uta100_athlete;" )								# clean the table of athlete
+	#--	pCur.execute( "delete from sqlite_sequence where name='uta100_athlete';" )	# reset the auto increment field
+	pCur.execute( "delete from uta100_raceresult;" )								# clean the table of race result
+	pCur.execute( "delete from sqlite_sequence where name='uta100_raceresult';" )	# reset the auto increment field
 	pCur.execute( "commit transaction;" )
 
 	pCur.close()
@@ -43,11 +65,12 @@ def grabOverAll(utaDb):
 	overallUrl = "https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1?page={}"
 	totalPages = 23
 	overallRange = range(1, totalPages + 1)
-	athleteQuery = "INSERT INTO uta100_athlete VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+	athleteQuery = "INSERT INTO uta100_athlete VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 	# grab the all overall page
 	print("{}\n  {:18}{:>28}\n{}".format('='*50, 'Overall List', 'UTA100 2023', '-'*50))
 	totalAthletes = 0
+	pCur = utaDb.cursor()
 	for i in overallRange:
 		print(" Page {} ... ".format(i), end='', flush=True)
 
@@ -117,9 +140,7 @@ def grabOverAll(utaDb):
 			]
 
 			# store into the database
-			pCur = utaDb.cursor()
 			pCur.execute( athleteQuery, athleteData )
-			pCur.close()
 
 			pageAthletes += 1
 
@@ -132,11 +153,97 @@ def grabOverAll(utaDb):
 		if i < totalPages:
 			sleepAnimation(intervalTime)
 
+	pCur.close()
 	print("{}\n Total Overall Pages: {}, Total Athletes: {}\n{}".format('-'*50, totalPages, totalAthletes, '='*50))
 
 def grabIndividual(utaDb):
-	###individualUrl = "https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1/results/individuals/{}"
-	pass
+	individualUrl = "https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1/results/individuals/{}"
+	overallQuery = "SELECT uta100_athlete.id AS id, bib, name, uta100_athlete.status AS status, uta100_status.abbr AS abbr FROM uta100_athlete \
+					LEFT JOIN uta100_status ON uta100_athlete.status = uta100_status.id WHERE uta100_athlete.status IN (1, 2) ORDER BY uta100_athlete.id"
+	raceResultQuery = "INSERT INTO uta100_raceresult VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	pCur = utaDb.cursor()
+
+	# fetch the overall list first
+	pRes = pCur.execute(overallQuery)
+	overallList = pRes.fetchall()
+
+	# grab the all individual page
+	print("\n{}\n  {:18}{:>28}\n{}".format('='*50, 'Individual', 'UTA100 2023', '-'*50))
+	totalAthletes = 0
+	###for pid, fbib, fname, fstatus, fabbr in overallList:
+	###	print(" No.{}, #{}, {}, {} ... ".format(pid, fbib, fname, fstatus, fabbr), end='', flush=True)
+	###
+	###	# fetch the individual page
+	###	response = requests.get(individualUrl.format(bib))
+	###	html_doc = response.text
+	individualFile = "uta100_2023_individual_496.html"
+	pid, fbib, fname, fstatus, fabbr = (400, 496, 'Steve ONORATO', 1, 'Finished')
+	print(" No.{}, #{}, {}, {} ... ".format(pid, fbib, fname, fabbr), end='', flush=True)
+	with open(individualFile, "r") as f:
+		html_doc = f.read()
+		########################################################################
+
+		# initial the parsing tree
+		overallSoup = BeautifulSoup(html_doc, 'lxml')
+
+		# find the race log
+		articleContainerTitle = overallSoup.find("tbody")
+
+		# deal with each row in the page
+		pageLogs = 0
+		for logRecord in articleContainerTitle.find_all("tr"):
+			logFields = logRecord.find_all("td")
+
+			# column 1: Location
+			locationName = logFields[0].text.strip()
+			flocation = LocationList.index(locationName) + 1
+			# column 2: split time
+			fsplittime = logFields[1].text.strip()
+			# column 3: race time
+			fracetime = logFields[2].text.strip()
+			# column 4: Total Position
+			ftpos = asIntField(logFields[3].text.strip())
+			# column 5: Gender Position
+			fgpos = asIntField(logFields[4].text.strip())
+			# column 6: Category Position
+			fcpos = asIntField(logFields[5].text.strip())
+			# column 7: Speed & Pace
+			speedStr, paceStr = logFields[6].text.split('/')
+			fspeed, fpace = asFloatField(speedStr.strip()), asPaceField(paceStr.strip())
+			# column 8: Location
+			ftod = logFields[7].text.strip()
+
+			# form the dataset of one race result log
+			raceResultData = [
+				pid,
+				fbib,
+				flocation,
+				fsplittime,
+				fracetime,
+				ftpos,
+				fcpos,
+				fgpos,
+				fspeed,
+				fpace,
+				ftod
+			]
+
+			# store into the database
+			pCur.execute( raceResultQuery, raceResultData )
+
+			pageLogs += 1
+
+		# commit the changes on database
+		utaDb.commit()
+
+		totalAthletes += 1
+		print("\b\b\b\b\b, {}".format(pageLogs))
+
+		if totalAthletes < len(overallList):
+			sleepAnimation(intervalTime)
+
+	pCur.close()
+	print("{}\n Total Athletes: {}\n{}".format('-'*50, totalAthletes, '='*50))
 
 def sleepAnimation(itime):
 	print('>', end='', flush=True)
@@ -145,6 +252,24 @@ def sleepAnimation(itime):
 		print("\b ", end='>', flush=True)
 		time.sleep(1)
 	print("\b "+"\b"*(i+2), end='', flush=True)
+
+def asIntField(s):
+	if s.isnumeric():
+		return int(s)
+	else:
+		return None
+
+def asFloatField(s):
+	try:
+		return float(s)
+	except:
+		return None
+
+def asPaceField(s):
+	if re.search("^\d+:\d+$", s):
+		return s
+	else:
+		return None
 
 def main():
 
@@ -157,7 +282,10 @@ def main():
 		utaDb = None
 
 	# grab the overall information
-	grabOverAll(utaDb)
+	#--	grabOverAll(utaDb)
+
+	# grab the overall information
+	grabIndividual(utaDb)
 
 	# close the database connection
 	if utaDb:
