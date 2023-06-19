@@ -1,0 +1,6 @@
+venv/
+
+temp/
+
+*.db3
+*.html
