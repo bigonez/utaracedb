@@ -170,18 +170,12 @@ def grabIndividual(utaDb):
 	# grab the all individual page
 	print("\n{}\n  {:18}{:>28}\n{}".format('='*50, 'Individual', 'UTA100 2023', '-'*50))
 	totalAthletes = 0
-	###for pid, fbib, fname, fstatus, fabbr in overallList:
-	###	print(" No.{}, #{}, {}, {} ... ".format(pid, fbib, fname, fstatus, fabbr), end='', flush=True)
-	###
-	###	# fetch the individual page
-	###	response = requests.get(individualUrl.format(bib))
-	###	html_doc = response.text
-	individualFile = "uta100_2023_individual_496.html"
-	pid, fbib, fname, fstatus, fabbr = (400, 496, 'Steve ONORATO', 1, 'Finished')
-	print(" No.{}, #{}, {}, {} ... ".format(pid, fbib, fname, fabbr), end='', flush=True)
-	with open(individualFile, "r") as f:
-		html_doc = f.read()
-		########################################################################
+	for pid, fbib, fname, fstatus, fabbr in overallList:
+		print(" No.{}, #{}, {}, {} ... ".format(pid, fbib, fname, fstatus, fabbr), end='', flush=True)
+
+		# fetch the individual page
+		response = requests.get(individualUrl.format(fbib))
+		html_doc = response.text
 
 		# initial the parsing tree
 		overallSoup = BeautifulSoup(html_doc, 'lxml')
