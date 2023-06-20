@@ -61,21 +61,20 @@ def cleanPreviousResultData(utaDb):
 	pCur.close()
 	utaDb.commit()
 
-def grabOverAll(utaDb):
-	overallUrl = "https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1?page={}"
-	totalPages = 23
-	overallRange = range(1, totalPages + 1)
+def grabOverAll(utaDb, overallUrl):
 	athleteQuery = "INSERT INTO uta100_athlete VALUES(NULL{})"
 
 	# grab the all overall page
 	print("{}\n  {:18}{:>28}\n{}".format('='*50, 'Overall List', 'UTA100 2023', '-'*50))
+	totalPages = 0
 	totalAthletes = 0
 	pCur = utaDb.cursor()
-	for i in overallRange:
-		print(" Page {} ... ".format(i), end='', flush=True)
+	while 1:
+		totalPages += 1
+		print(" Page {} ... ".format(totalPages), end='', flush=True)
 
 		# fetch the overall page
-		response = requests.get(overallUrl.format(i))
+		response = requests.get(overallUrl)
 		html_doc = response.text
 
 		# initial the parsing tree
@@ -152,16 +151,29 @@ def grabOverAll(utaDb):
 		totalAthletes += pageAthletes
 		print("\b\b\b\b\b, {}, {}".format(pageAthletes, totalAthletes))
 
-		if i < totalPages:
+		# find the URL to the next page
+		paginationBlock = overallSoup.find("ul", {"class": "pagination"})
+		navigateBtns = paginationBlock.find_all("a")
+		if len(navigateBtns) == 1:
+			navigateBtn = navigateBtns[0]
+		elif len(navigateBtns) == 2:
+			navigateBtn = navigateBtns[1]
+		else:
+			navigateBtn = None
+
+		if navigateBtn and navigateBtn.text.find('Next') >= 0:
+			# get the href attribute as the URL of the next page
+			overallUrl = navigateBtn.get("href")
+			# display the waiting animation
 			sleepAnimation(intervalTime)
+		else:
+			break
 
 	pCur.close()
 	print("{}\n Total Overall Pages: {}, Total Athletes: {}\n{}".format('-'*50, totalPages, totalAthletes, '='*50))
 
 def grabIndividual(utaDb):
-	individualUrl = "https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1/results/individuals/{}"
-	overallQuery = "SELECT uta100_athlete.id AS id, bib, name, uta100_athlete.status AS status, uta100_status.abbr AS abbr FROM uta100_athlete \
-					LEFT JOIN uta100_status ON uta100_athlete.status = uta100_status.id WHERE uta100_athlete.status IN (1, 2) ORDER BY uta100_athlete.id"
+	overallQuery = "SELECT id, bib, name, status, link FROM uta100_athlete WHERE status IN (1, 2) ORDER BY id"
 	raceResultQuery = "INSERT INTO uta100_raceresult VALUES(NULL{})"
 	pCur = utaDb.cursor()
 
@@ -172,11 +184,11 @@ def grabIndividual(utaDb):
 	# grab the all individual page
 	print("\n{}\n  {:28}{:>18}\n{}".format('='*50, 'Individual Race Result', 'UTA100 2023', '-'*50))
 	totalAthletes = 0
-	for pid, fbib, fname, fstatus, fabbr in overallList:
-		print(" No.{}, #{}, {}, {} ... ".format(pid, fbib, fname, fstatus, fabbr), end='', flush=True)
+	for pid, fbib, fname, fstatus, fhref in overallList:
+		print(" No.{}, #{}, {}, {} ... ".format(pid, fbib, fname, fstatus), end='', flush=True)
 
 		# fetch the individual page
-		response = requests.get(individualUrl.format(fbib))
+		response = requests.get(fhref)
 		html_doc = response.text
 
 		# initial the parsing tree
@@ -294,7 +306,8 @@ def main():
 		utaDb = None
 
 	# grab the overall information
-	grabOverAll(utaDb)
+	overallUrl = "https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1"
+	grabOverAll(utaDb, overallUrl)
 
 	# grab the overall information
 	grabIndividual(utaDb)
