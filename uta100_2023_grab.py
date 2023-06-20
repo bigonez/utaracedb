@@ -253,7 +253,7 @@ def grabIndividual(utaDb):
 		utaDb.commit()
 
 		totalAthletes += 1
-		print("\b\b\b\b\b, {}".format(pageLogs))
+		print("\b\b\b\b\b, {} ".format(pageLogs))
 
 		if totalAthletes < len(overallList):
 			sleepAnimation(intervalTime)
