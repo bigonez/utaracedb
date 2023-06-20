@@ -111,6 +111,7 @@ CREATE TABLE uta100_athlete (
     category    INTEGER NOT NULL,                                               --  category id
     gender      INTEGER NOT NULL,                                               --  gender id
     racetime    TEXT,                                                           --  race time
+    racestamp   INTEGER,                                                        --  seconds of race time
     tpos        INTEGER,                                                        --  ovarall position
     cpos        INTEGER,                                                        --  category position
     gpos        INTEGER,                                                        --  gender position
@@ -127,13 +128,16 @@ CREATE TABLE uta100_raceresult (
     bib         INTEGER NOT NULL,                                               --  bib number
     location    INTEGER NOT NULL,                                               --  location Id
     splittime   TEXT NOT NULL,                                                  --  the split time
+    splitstamp  INTEGER NOT NULL,                                               --  seconds of split time
     racetime    TEXT NOT NULL,                                                  --  the race time
+    racestamp   INTEGER NOT NULL,                                               --  seconds of race time
     tpos        INTEGER,                                                        --  overall position
     cpos        INTEGER,                                                        --  category position
     gpos        INTEGER,                                                        --  gender position
     speed       REAL,                                                           --  speed
     pace        REAL,                                                           --  pace
-    tod         TEXT NOT NULL                                                   --  time of day
+    todtime     TEXT NOT NULL,                                                  --  time of day
+    todstamp    INTEGER NOT NULL                                                --  seconds of TOD
 );
 
 
