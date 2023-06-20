@@ -52,8 +52,8 @@ def cleanPreviousResultData(utaDb):
 	pCur = utaDb.cursor()
 
 	pCur.execute( "begin transaction;" )
-	#--	pCur.execute( "delete from uta100_athlete;" )								# clean the table of athlete
-	#--	pCur.execute( "delete from sqlite_sequence where name='uta100_athlete';" )	# reset the auto increment field
+	pCur.execute( "delete from uta100_athlete;" )									# clean the table of athlete
+	pCur.execute( "delete from sqlite_sequence where name='uta100_athlete';" )		# reset the auto increment field
 	pCur.execute( "delete from uta100_raceresult;" )								# clean the table of race result
 	pCur.execute( "delete from sqlite_sequence where name='uta100_raceresult';" )	# reset the auto increment field
 	pCur.execute( "commit transaction;" )
@@ -65,7 +65,7 @@ def grabOverAll(utaDb):
 	overallUrl = "https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1?page={}"
 	totalPages = 23
 	overallRange = range(1, totalPages + 1)
-	athleteQuery = "INSERT INTO uta100_athlete VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	athleteQuery = "INSERT INTO uta100_athlete VALUES(NULL{})"
 
 	# grab the all overall page
 	print("{}\n  {:18}{:>28}\n{}".format('='*50, 'Overall List', 'UTA100 2023', '-'*50))
@@ -108,6 +108,7 @@ def grabOverAll(utaDb):
 			fname, fbib = name_bib[0].strip(), int(name_bib[1])
 			# column 3: Race Time
 			fracetime = overallFields[2].text.strip()
+			fracestamp = HmsToSeconds(fracetime)
 			if len(fracetime) == 0:
 				fracetime = None
 			# column 4: Category & Position
@@ -132,6 +133,7 @@ def grabOverAll(utaDb):
 				fcategory,
 				fgender,
 				fracetime,
+				fracestamp,
 				ftpos,
 				fcpos,
 				fgpos,
@@ -140,7 +142,7 @@ def grabOverAll(utaDb):
 			]
 
 			# store into the database
-			pCur.execute( athleteQuery, athleteData )
+			pCur.execute( athleteQuery.format(", ?"*len(athleteData)), athleteData )
 
 			pageAthletes += 1
 
@@ -160,7 +162,7 @@ def grabIndividual(utaDb):
 	individualUrl = "https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1/results/individuals/{}"
 	overallQuery = "SELECT uta100_athlete.id AS id, bib, name, uta100_athlete.status AS status, uta100_status.abbr AS abbr FROM uta100_athlete \
 					LEFT JOIN uta100_status ON uta100_athlete.status = uta100_status.id WHERE uta100_athlete.status IN (1, 2) ORDER BY uta100_athlete.id"
-	raceResultQuery = "INSERT INTO uta100_raceresult VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	raceResultQuery = "INSERT INTO uta100_raceresult VALUES(NULL{})"
 	pCur = utaDb.cursor()
 
 	# fetch the overall list first
@@ -168,7 +170,7 @@ def grabIndividual(utaDb):
 	overallList = pRes.fetchall()
 
 	# grab the all individual page
-	print("\n{}\n  {:18}{:>28}\n{}".format('='*50, 'Individual', 'UTA100 2023', '-'*50))
+	print("\n{}\n  {:28}{:>18}\n{}".format('='*50, 'Individual Race Result', 'UTA100 2023', '-'*50))
 	totalAthletes = 0
 	for pid, fbib, fname, fstatus, fabbr in overallList:
 		print(" No.{}, #{}, {}, {} ... ".format(pid, fbib, fname, fstatus, fabbr), end='', flush=True)
@@ -185,6 +187,7 @@ def grabIndividual(utaDb):
 
 		# deal with each row in the page
 		pageLogs = 0
+		lastTodStamp = 0
 		for logRecord in articleContainerTitle.find_all("tr"):
 			logFields = logRecord.find_all("td")
 
@@ -206,6 +209,10 @@ def grabIndividual(utaDb):
 			fspeed, fpace = asFloatField(speedStr.strip()), asPaceField(paceStr.strip())
 			# column 8: Location
 			ftod = logFields[7].text.strip()
+			ftodstamp = HmsToSeconds(ftod)
+			if ftodstamp < lastTodStamp:
+				ftodstamp += 86400
+			lastTodStamp = ftodstamp
 
 			# form the dataset of one race result log
 			raceResultData = [
@@ -213,17 +220,20 @@ def grabIndividual(utaDb):
 				fbib,
 				flocation,
 				fsplittime,
+				HmsToSeconds(fsplittime),
 				fracetime,
+				HmsToSeconds(fracetime),
 				ftpos,
 				fcpos,
 				fgpos,
 				fspeed,
 				fpace,
-				ftod
+				ftod,
+				ftodstamp
 			]
 
 			# store into the database
-			pCur.execute( raceResultQuery, raceResultData )
+			pCur.execute( raceResultQuery.format(", ?"*len(raceResultData)), raceResultData )
 
 			pageLogs += 1
 
@@ -265,6 +275,14 @@ def asPaceField(s):
 	else:
 		return None
 
+def HmsToSeconds(timestr):
+	hms = re.search("^(\d+):(\d+):(\d+)$", timestr)
+	if hms:
+		h, m, s = int(hms.group(1)), int(hms.group(2)), int(hms.group(3))
+		return h * 3600 + m * 60 + s
+	else:
+		return None
+
 def main():
 
 	# intital the SQLite3 database
@@ -276,7 +294,7 @@ def main():
 		utaDb = None
 
 	# grab the overall information
-	#--	grabOverAll(utaDb)
+	grabOverAll(utaDb)
 
 	# grab the overall information
 	grabIndividual(utaDb)
