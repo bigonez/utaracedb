@@ -210,7 +210,7 @@ def grabIndividual(utaDb):
 			# column 8: Location
 			ftod = logFields[7].text.strip()
 			ftodstamp = HmsToSeconds(ftod)
-			if ftodstamp < lastTodStamp:
+			if (ftodstamp + 43200) < lastTodStamp:
 				ftodstamp += 86400
 			lastTodStamp = ftodstamp
 
