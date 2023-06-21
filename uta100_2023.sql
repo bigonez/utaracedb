@@ -141,6 +141,43 @@ CREATE TABLE uta100_raceresult (
 );
 
 
+/*
+    Analysis Views
+
+    Tables:
+    . Athlete & Location
+    . Race Result with Full Location
+    . Missing Race Result
+*/
+
+-- Athlete & Location view ---------------------------------------------------------------------
+DROP VIEW IF EXISTS uta100_athlete_location;
+CREATE VIEW uta100_athlete_location AS
+    SELECT A.id AS pid, bib, L.id AS location, L.name AS name, odometer
+    FROM uta100_location AS L
+    JOIN uta100_athlete AS A
+    WHERE A.status = 1
+    ORDER BY pid, location;
+
+-- Race Result with Full Location view ---------------------------------------------------------
+DROP VIEW IF EXISTS uta100_full_raceresult;
+CREATE VIEW uta100_full_raceresult AS
+    SELECT AL.*, RR.splittime, splitstamp, racetime, racestamp, tpos, cpos, gpos, speed, pace, todtime, todstamp
+    FROM uta100_athlete_location AS AL
+    LEFT JOIN uta100_raceresult AS RR
+    USING (pid, location)
+    ORDER BY AL.pid, AL.location;
+
+-- Missing Race Result view --------------------------------------------------------------------
+DROP VIEW IF EXISTS uta100_missing_raceresult;
+CREATE VIEW uta100_missing_raceresult AS
+    SELECT AL.*, racetime, racestamp FROM uta100_athlete_location AS AL
+    LEFT JOIN uta100_raceresult AS RR
+    USING (pid, location)
+    WHERE RR.id IS NULL
+    ORDER BY AL.pid, AL.location;
+
+
 ------------------------------------------------------------------------------------------------
 END TRANSACTION;
 ------------------------------------------------------------------------------------------------

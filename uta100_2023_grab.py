@@ -65,13 +65,12 @@ def grabOverAll(utaDb, overallUrl):
 	athleteQuery = "INSERT INTO uta100_athlete VALUES(NULL{})"
 
 	# grab the all overall page
-	print("{}\n  {:18}{:>28}\n{}".format('='*50, 'Overall List', 'UTA100 2023', '-'*50))
-	totalPages = 0
+	curPage = 0
 	totalAthletes = 0
 	pCur = utaDb.cursor()
-	while 1:
-		totalPages += 1
-		print(" Page {} ... ".format(totalPages), end='', flush=True)
+	while overallUrl:
+		curPage += 1
+		print(" Overall Page {} ... ".format(curPage), end='', flush=True)
 
 		# fetch the overall page
 		response = requests.get(overallUrl)
@@ -84,8 +83,12 @@ def grabOverAll(utaDb, overallUrl):
 		articleContainerTitle = overallSoup.find("tbody")
 
 		# deal with each row in the page
-		pageAthletes = 0
-		for overallRecord in articleContainerTitle.find_all("tr"):
+		overallRecords = articleContainerTitle.find_all("tr")
+		pageAthletes = len(overallRecords)
+		totalAthletes += pageAthletes
+		print("\b\b\b\b\b, {}, {}".format(pageAthletes, totalAthletes))
+
+		for overallRecord in overallRecords:
 			overallFields = overallRecord.find_all("td")
 			# column 1: Position & Status
 			tpos = overallFields[0].text
@@ -142,14 +145,13 @@ def grabOverAll(utaDb, overallUrl):
 
 			# store into the database
 			pCur.execute( athleteQuery.format(", ?"*len(athleteData)), athleteData )
+			pid = pCur.lastrowid
 
-			pageAthletes += 1
+			overallRow = (pid, fbib, fname, fstatus, fhref)
+			yield overallRow, curPage
 
 		# commit the changes on database
 		utaDb.commit()
-
-		totalAthletes += pageAthletes
-		print("\b\b\b\b\b, {}, {}".format(pageAthletes, totalAthletes))
 
 		# find the URL to the next page
 		paginationBlock = overallSoup.find("ul", {"class": "pagination"})
@@ -164,102 +166,94 @@ def grabOverAll(utaDb, overallUrl):
 		if navigateBtn and navigateBtn.text.find('Next') >= 0:
 			# get the href attribute as the URL of the next page
 			overallUrl = navigateBtn.get("href")
-			# display the waiting animation
-			sleepAnimation(intervalTime)
 		else:
-			break
+			# no more overall page
+			overallUrl = None
 
 	pCur.close()
-	print("{}\n Total Overall Pages: {}, Total Athletes: {}\n{}".format('-'*50, totalPages, totalAthletes, '='*50))
 
-def grabIndividual(utaDb):
-	overallQuery = "SELECT id, bib, name, status, link FROM uta100_athlete WHERE status IN (1, 2) ORDER BY id"
+def grabIndividual(utaDb, overallRow):
+	pid, fbib, fname, fstatus, fhref = overallRow
+	print("  {}, #{}, {}, {} ... ".format(pid, fbib, fname, fstatus), end='', flush=True)
+	if fstatus not in [1, 2]:
+		# status not be Finished or DNF
+		print("\b\b\b\b\b, 0 ")
+		return
+
 	raceResultQuery = "INSERT INTO uta100_raceresult VALUES(NULL{})"
 	pCur = utaDb.cursor()
 
-	# fetch the overall list first
-	pRes = pCur.execute(overallQuery)
-	overallList = pRes.fetchall()
+	# fetch the individual page
+	response = requests.get(fhref)
+	html_doc = response.text
 
-	# grab the all individual page
-	print("\n{}\n  {:28}{:>18}\n{}".format('='*50, 'Individual Race Result', 'UTA100 2023', '-'*50))
-	totalAthletes = 0
-	for pid, fbib, fname, fstatus, fhref in overallList:
-		print(" No.{}, #{}, {}, {} ... ".format(pid, fbib, fname, fstatus), end='', flush=True)
+	# initial the parsing tree
+	overallSoup = BeautifulSoup(html_doc, 'lxml')
 
-		# fetch the individual page
-		response = requests.get(fhref)
-		html_doc = response.text
+	# find the race log
+	articleContainerTitle = overallSoup.find("tbody")
 
-		# initial the parsing tree
-		overallSoup = BeautifulSoup(html_doc, 'lxml')
+	# deal with each row in the page
+	pageLogs = 0
+	lastTodStamp = 0
+	logRecords = articleContainerTitle.find_all("tr")
+	for logRecord in logRecords:
+		logFields = logRecord.find_all("td")
 
-		# find the race log
-		articleContainerTitle = overallSoup.find("tbody")
+		# column 1: Location
+		locationName = logFields[0].text.strip()
+		flocation = LocationList.index(locationName) + 1
+		# column 2: split time
+		fsplittime = logFields[1].text.strip()
+		# column 3: race time
+		fracetime = logFields[2].text.strip()
+		# column 4: Total Position
+		ftpos = asIntField(logFields[3].text.strip())
+		# column 5: Gender Position
+		fgpos = asIntField(logFields[4].text.strip())
+		# column 6: Category Position
+		fcpos = asIntField(logFields[5].text.strip())
+		# column 7: Speed & Pace
+		speedStr, paceStr = logFields[6].text.split('/')
+		fspeed, fpace = asFloatField(speedStr.strip()), asPaceField(paceStr.strip())
+		# column 8: Location
+		ftod = logFields[7].text.strip()
+		ftodstamp = HmsToSeconds(ftod)
+		if (ftodstamp + 43200) < lastTodStamp:
+			ftodstamp += 86400
+		lastTodStamp = ftodstamp
 
-		# deal with each row in the page
-		pageLogs = 0
-		lastTodStamp = 0
-		for logRecord in articleContainerTitle.find_all("tr"):
-			logFields = logRecord.find_all("td")
+		# form the dataset of one race result log
+		raceResultData = [
+			pid,
+			fbib,
+			flocation,
+			fsplittime,
+			HmsToSeconds(fsplittime),
+			fracetime,
+			HmsToSeconds(fracetime),
+			ftpos,
+			fcpos,
+			fgpos,
+			fspeed,
+			fpace,
+			ftod,
+			ftodstamp
+		]
 
-			# column 1: Location
-			locationName = logFields[0].text.strip()
-			flocation = LocationList.index(locationName) + 1
-			# column 2: split time
-			fsplittime = logFields[1].text.strip()
-			# column 3: race time
-			fracetime = logFields[2].text.strip()
-			# column 4: Total Position
-			ftpos = asIntField(logFields[3].text.strip())
-			# column 5: Gender Position
-			fgpos = asIntField(logFields[4].text.strip())
-			# column 6: Category Position
-			fcpos = asIntField(logFields[5].text.strip())
-			# column 7: Speed & Pace
-			speedStr, paceStr = logFields[6].text.split('/')
-			fspeed, fpace = asFloatField(speedStr.strip()), asPaceField(paceStr.strip())
-			# column 8: Location
-			ftod = logFields[7].text.strip()
-			ftodstamp = HmsToSeconds(ftod)
-			if (ftodstamp + 43200) < lastTodStamp:
-				ftodstamp += 86400
-			lastTodStamp = ftodstamp
+		# store into the database
+		pCur.execute( raceResultQuery.format(", ?"*len(raceResultData)), raceResultData )
 
-			# form the dataset of one race result log
-			raceResultData = [
-				pid,
-				fbib,
-				flocation,
-				fsplittime,
-				HmsToSeconds(fsplittime),
-				fracetime,
-				HmsToSeconds(fracetime),
-				ftpos,
-				fcpos,
-				fgpos,
-				fspeed,
-				fpace,
-				ftod,
-				ftodstamp
-			]
+		pageLogs += 1
 
-			# store into the database
-			pCur.execute( raceResultQuery.format(", ?"*len(raceResultData)), raceResultData )
-
-			pageLogs += 1
-
-		# commit the changes on database
-		utaDb.commit()
-
-		totalAthletes += 1
-		print("\b\b\b\b\b, {} ".format(pageLogs))
-
-		if totalAthletes < len(overallList):
-			sleepAnimation(intervalTime)
-
+	# commit the changes on database
 	pCur.close()
-	print("{}\n Total Athletes: {}\n{}".format('-'*50, totalAthletes, '='*50))
+	utaDb.commit()
+
+	print("\b\b\b\b\b, {} ".format(pageLogs))
+
+	# display the waiting animation
+	sleepAnimation(intervalTime)
 
 def sleepAnimation(itime):
 	print('>', end='', flush=True)
@@ -305,16 +299,44 @@ def main():
 	else:
 		utaDb = None
 
-	# grab the overall information
+	# grab the overall information for the offical race result web site
+	print("{}\n  {:18}{:>28}\n{}".format('='*50, 'Race Result', 'UTA100 2023', '-'*50))
 	overallUrl = "https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1"
-	grabOverAll(utaDb, overallUrl)
 
-	# grab the overall information
-	grabIndividual(utaDb)
+	totalPages = 0
+	totalAthletes = 0
+	totalStatus = [0, 0, 0]
+	lastPage = 0
+	for overallRow, curPage in grabOverAll(utaDb, overallUrl):
+		if curPage != lastPage:
+			lastPage = curPage
+			# display the waiting animation
+			sleepAnimation(intervalTime)
+
+		# grab the individual race result for finished & DNF only
+		grabIndividual(utaDb, overallRow)
+
+		# update the stats
+		totalPages = curPage
+		totalAthletes += 1
+		rowStatus = overallRow[3]
+		if rowStatus > 0:
+			totalStatus[rowStatus - 1] += 1
 
 	# close the database connection
 	if utaDb:
 		utaDb.close()
+
+	# display the summary information
+	print("{}\n  {:>20}: {}\n  {:>20}: {}\n  {:>20}: {}\n  {:>20}: {}\n  {:>20}: {}\n{}".format(
+		'-'*50,
+		'Total Overall Pages', totalPages,
+		'Total Athletes', totalAthletes,
+		'Finished', totalStatus[0],
+		'DNF', totalStatus[1],
+		'NYS', totalStatus[2],
+		'='*50
+	))
 
 if __name__ == '__main__':
 	main()
