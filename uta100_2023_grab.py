@@ -68,7 +68,7 @@ def grabOverAll(utaDb, overallUrl):
 	curPage = 0
 	totalAthletes = 0
 	pCur = utaDb.cursor()
-	while 1:
+	while overallUrl:
 		curPage += 1
 		print(" Overall Page {} ... ".format(curPage), end='', flush=True)
 
@@ -167,7 +167,8 @@ def grabOverAll(utaDb, overallUrl):
 			# get the href attribute as the URL of the next page
 			overallUrl = navigateBtn.get("href")
 		else:
-			break
+			# no more overall page
+			overallUrl = None
 
 	pCur.close()
 
