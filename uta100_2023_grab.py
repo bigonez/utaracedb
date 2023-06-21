@@ -305,15 +305,15 @@ def main():
 			# grab the individual race result for finished & DNF only
 			grabIndividual(utaDb, overallRow)
 
+			# display the waiting animation
+			sleepAnimation(intervalTime)
+
 		# update the stats
 		totalPages = curPage
 		totalAthletes += 1
 		rowStatus = overallRow[3]
 		if rowStatus > 0:
 			totalStatus[rowStatus - 1] += 1
-
-		# display the waiting animation
-		sleepAnimation(intervalTime)
 
 	# close the database connection
 	if utaDb:
