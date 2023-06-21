@@ -173,11 +173,15 @@ def grabOverAll(utaDb, overallUrl):
 	pCur.close()
 
 def grabIndividual(utaDb, overallRow):
-	raceResultQuery = "INSERT INTO uta100_raceresult VALUES(NULL{})"
-	pCur = utaDb.cursor()
-
 	pid, fbib, fname, fstatus, fhref = overallRow
 	print("  {}, #{}, {}, {} ... ".format(pid, fbib, fname, fstatus), end='', flush=True)
+	if fstatus not in [1, 2]:
+		# status not be Finished or DNF
+		print("\b\b\b\b\b, 0 ")
+		return
+
+	raceResultQuery = "INSERT INTO uta100_raceresult VALUES(NULL{})"
+	pCur = utaDb.cursor()
 
 	# fetch the individual page
 	response = requests.get(fhref)
@@ -248,6 +252,9 @@ def grabIndividual(utaDb, overallRow):
 
 	print("\b\b\b\b\b, {} ".format(pageLogs))
 
+	# display the waiting animation
+	sleepAnimation(intervalTime)
+
 def sleepAnimation(itime):
 	print('>', end='', flush=True)
 	time.sleep(1)
@@ -299,14 +306,15 @@ def main():
 	totalPages = 0
 	totalAthletes = 0
 	totalStatus = [0, 0, 0]
+	lastPage = 0
 	for overallRow, curPage in grabOverAll(utaDb, overallUrl):
-		rowStatus = overallRow[3]
-		if rowStatus in [1, 2]:
-			# grab the individual race result for finished & DNF only
-			grabIndividual(utaDb, overallRow)
-
+		if curPage != lastPage:
+			lastPage = curPage
 			# display the waiting animation
 			sleepAnimation(intervalTime)
+
+		# grab the individual race result for finished & DNF only
+		grabIndividual(utaDb, overallRow)
 
 		# update the stats
 		totalPages = curPage
