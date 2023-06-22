@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 from bs4 import BeautifulSoup
-import requests, re, json, os, time
+import requests, re, json, os, time, datetime
 import sqlite3
 
-intervalTime = 10
+intervalTime = 5
 hrefRoot = "https://www.multisportaustralia.com.au"
 
 CategoryList = [
@@ -174,7 +174,7 @@ def grabOverAll(utaDb, overallUrl):
 
 def grabIndividual(utaDb, overallRow):
 	pid, fbib, fname, fstatus, fhref = overallRow
-	print("  {}, #{}, {}, {} ... ".format(pid, fbib, fname, fstatus), end='', flush=True)
+	print(" . {}, #{}, {}, {} ... ".format(pid, fbib, fname, fstatus), end='', flush=True)
 	if fstatus not in [1, 2]:
 		# status not be Finished or DNF
 		print("\b\b\b\b\b, 0 ")
@@ -289,6 +289,21 @@ def HmsToSeconds(timestr):
 	else:
 		return None
 
+def strTimeDelta(td, digits):
+	if td.days > 0: prefix = "{} days, ".format(td.days)
+	else:           prefix = ""
+
+	if digits < 0:  digits = 0
+	if digits > 6:  digits = 6
+	if digits > 0:  sw = 3 + digits
+	else:           sw = 2
+
+	hours   = td.seconds // 3600
+	minutes = (td.seconds - hours * 3600) // 60
+	seconds = round(td.total_seconds() % 60, digits)
+
+	return prefix + "{:d}:{:02d}:{:0{}.{}f}".format(hours, minutes, seconds, sw, digits)
+
 def main():
 
 	# intital the SQLite3 database
@@ -339,4 +354,11 @@ def main():
 	))
 
 if __name__ == '__main__':
+	startTime = time.time()
+
 	main()
+
+	finishTime = time.time()
+	processTime = datetime.timedelta(seconds=(finishTime - startTime))
+
+	print(" Total Processing Time: {}".format(strTimeDelta(processTime, 2)))
