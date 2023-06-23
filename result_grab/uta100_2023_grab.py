@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from bs4 import BeautifulSoup
 import requests, re, json, os, time, datetime
@@ -270,9 +271,10 @@ def asIntField(s):
 		return None
 
 def asFloatField(s):
-	try:
-		return float(s)
-	except:
+	match = re.search("^(\d*\.\d*)$", s)
+	if match:
+		return float(match.group(1))
+	else:
 		return None
 
 def asPaceField(s):
