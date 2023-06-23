@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from bs4 import BeautifulSoup
 import requests, re, json, os, time, datetime
@@ -48,7 +49,7 @@ LocationList = [
 	"Finish"
 ]
 
-def cleanPreviousResultData(utaDb):
+def cleanPreviousResultData(utaDb:sqlite3.Connection) -> None:
 	pCur = utaDb.cursor()
 
 	pCur.execute( "begin transaction;" )
@@ -61,7 +62,7 @@ def cleanPreviousResultData(utaDb):
 	pCur.close()
 	utaDb.commit()
 
-def grabOverAll(utaDb, overallUrl):
+def grabOverAll(utaDb:sqlite3.Connection, overallUrl:str) -> None:
 	athleteQuery = "INSERT INTO uta100_athlete VALUES(NULL{})"
 
 	# grab the all overall page
@@ -172,7 +173,7 @@ def grabOverAll(utaDb, overallUrl):
 
 	pCur.close()
 
-def grabIndividual(utaDb, overallRow):
+def grabIndividual(utaDb:sqlite3.Connection, overallRow:tuple) -> None:
 	pid, fbib, fname, fstatus, fhref = overallRow
 	print(" . {}, #{}, {}, {} ... ".format(pid, fbib, fname, fstatus), end='', flush=True)
 	if fstatus not in [1, 2]:
@@ -255,7 +256,7 @@ def grabIndividual(utaDb, overallRow):
 	# display the waiting animation
 	sleepAnimation(intervalTime)
 
-def sleepAnimation(itime):
+def sleepAnimation(itime:int) -> None:
 	print('>', end='', flush=True)
 	time.sleep(1)
 	for i in range(itime-1):
@@ -263,25 +264,26 @@ def sleepAnimation(itime):
 		time.sleep(1)
 	print("\b "+"\b"*(i+2), end='', flush=True)
 
-def asIntField(s):
+def asIntField(s:str) -> int:
 	if s.isnumeric():
 		return int(s)
 	else:
 		return None
 
-def asFloatField(s):
-	try:
-		return float(s)
-	except:
+def asFloatField(s:str) -> float:
+	match = re.search("^(\d*\.\d*)$", s)
+	if match:
+		return float(match.group(1))
+	else:
 		return None
 
-def asPaceField(s):
+def asPaceField(s:str) -> str:
 	if re.search("^\d+:\d+$", s):
 		return s
 	else:
 		return None
 
-def HmsToSeconds(timestr):
+def HmsToSeconds(timestr:str) -> int:
 	hms = re.search("^(\d+):(\d+):(\d+)$", timestr)
 	if hms:
 		h, m, s = int(hms.group(1)), int(hms.group(2)), int(hms.group(3))
@@ -289,7 +291,7 @@ def HmsToSeconds(timestr):
 	else:
 		return None
 
-def strTimeDelta(td, digits):
+def strTimeDelta(td:datetime.timedelta, digits:int) -> str:
 	if td.days > 0: prefix = "{} days, ".format(td.days)
 	else:           prefix = ""
 
@@ -304,7 +306,7 @@ def strTimeDelta(td, digits):
 
 	return prefix + "{:d}:{:02d}:{:0{}.{}f}".format(hours, minutes, seconds, sw, digits)
 
-def main():
+def main() -> None:
 
 	# intital the SQLite3 database
 	utaDbName = "uta100_2023.db3"
