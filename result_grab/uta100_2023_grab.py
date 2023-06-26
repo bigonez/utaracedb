@@ -53,10 +53,10 @@ def cleanPreviousResultData(utaDb):
 	pCur = utaDb.cursor()
 
 	pCur.execute( "begin transaction;" )
-	pCur.execute( "delete from uta100_athlete;" )									# clean the table of athlete
-	pCur.execute( "delete from sqlite_sequence where name='uta100_athlete';" )		# reset the auto increment field
-	pCur.execute( "delete from uta100_raceresult;" )								# clean the table of race result
-	pCur.execute( "delete from sqlite_sequence where name='uta100_raceresult';" )	# reset the auto increment field
+	pCur.execute( "delete from uta100_athlete;" )								# clean the table of athlete
+	pCur.execute( "delete from sqlite_sequence where name='uta100_athlete';" )	# reset the auto increment field
+	pCur.execute( "delete from uta100_racelog;" )								# clean the table of race result
+	pCur.execute( "delete from sqlite_sequence where name='uta100_racelog';" )	# reset the auto increment field
 	pCur.execute( "commit transaction;" )
 
 	pCur.close()
@@ -181,7 +181,7 @@ def grabIndividual(utaDb, overallRow):
 		print("\b\b\b\b\b, 0 ")
 		return
 
-	raceResultQuery = "INSERT INTO uta100_raceresult VALUES(NULL{})"
+	raceLogQuery = "INSERT INTO uta100_racelog VALUES(NULL{})"
 	pCur = utaDb.cursor()
 
 	# fetch the individual page
@@ -225,7 +225,7 @@ def grabIndividual(utaDb, overallRow):
 		lastTodStamp = ftodstamp
 
 		# form the dataset of one race result log
-		raceResultData = [
+		raceLogData = [
 			pid,
 			fbib,
 			flocation,
@@ -243,7 +243,7 @@ def grabIndividual(utaDb, overallRow):
 		]
 
 		# store into the database
-		pCur.execute( raceResultQuery.format(", ?"*len(raceResultData)), raceResultData )
+		pCur.execute( raceLogQuery.format(", ?"*len(raceLogData)), raceLogData )
 
 		pageLogs += 1
 

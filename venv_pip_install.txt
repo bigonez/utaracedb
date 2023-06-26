@@ -1,0 +1,49 @@
+# initial
+$python -m venv venv
+$.\venv\Scripts\activate.bat
+(venv) λ python.exe -m pip install --upgrade pip
+
+# for web data grabbing
+(venv) λ pip install beautifulsoup4
+(venv) λ pip install lxml
+(venv) λ pip install requests
+(venv) λ pip freeze
+beautifulsoup4==4.12.2
+certifi==2023.5.7
+charset-normalizer==3.1.0
+idna==3.4
+lxml==4.9.2
+requests==2.31.0
+soupsieve==2.4.1
+urllib3==2.0.3
+
+# for race result data analysis
+(venv) λ pip install pandas
+(venv) λ pip install matplotlib
+(venv) λ pip install mpl_toolkits
+(venv) λ pip freeze
+  beautifulsoup4==4.12.2
+  certifi==2023.5.7
+  charset-normalizer==3.1.0
++ contourpy==1.1.0
++ cycler==0.11.0
++ fonttools==4.40.0
+  idna==3.4
++ kiwisolver==1.4.4
+  lxml==4.9.2
++ matplotlib==3.7.1
++ numpy==1.25.0
++ packaging==23.1
++ pandas==2.0.2
++ Pillow==9.5.0
++ pyparsing==3.1.0
++ python-dateutil==2.8.2
++ pytz==2023.3
+  requests==2.31.0
++ six==1.16.0
+  soupsieve==2.4.1
++ tzdata==2023.3
+  urllib3==2.0.3
+
+(venv) λ deactivate.bat
+λ
