@@ -119,9 +119,9 @@ CREATE TABLE uta100_athlete (
     link        TEXT NOT NULL                                                   --  link to athlete's race details
 );
 
--- Result table --------------------------------------------------------------------------------
-DROP TABLE IF EXISTS uta100_raceresult;
-CREATE TABLE uta100_raceresult (
+-- Race Log table ------------------------------------------------------------------------------
+DROP TABLE IF EXISTS uta100_racelog;
+CREATE TABLE uta100_racelog (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,                              --  Id
 
     pid         INTEGER NOT NULL,                                               --  athlete Id
@@ -146,8 +146,12 @@ CREATE TABLE uta100_raceresult (
 
     Tables:
     . Athlete & Location
-    . Race Result with Full Location
-    . Missing Race Result
+    . Race Log with Full Location
+    . Missing Race Log
+    . Race Time Proportion
+    . Race Time Proportion's Mean
+    . Race Time Proportion's Standard Deviation
+    . Potential Log Error
 */
 
 -- Athlete & Location view ---------------------------------------------------------------------
@@ -159,23 +163,66 @@ CREATE VIEW uta100_athlete_location AS
     WHERE A.status = 1
     ORDER BY pid, location;
 
--- Race Result with Full Location view ---------------------------------------------------------
-DROP VIEW IF EXISTS uta100_full_raceresult;
-CREATE VIEW uta100_full_raceresult AS
-    SELECT AL.*, RR.splittime, splitstamp, racetime, racestamp, tpos, cpos, gpos, speed, pace, todtime, todstamp
+-- Race Logged Record with Full Location view --------------------------------------------------
+DROP VIEW IF EXISTS uta100_full_racelog;
+CREATE VIEW uta100_full_racelog AS
+    SELECT AL.*, splittime, splitstamp, racetime, racestamp, tpos, cpos, gpos, speed, pace, todtime, todstamp
     FROM uta100_athlete_location AS AL
-    LEFT JOIN uta100_raceresult AS RR
+    LEFT JOIN uta100_racelog AS RR
     USING (pid, location)
     ORDER BY AL.pid, AL.location;
 
--- Missing Race Result view --------------------------------------------------------------------
-DROP VIEW IF EXISTS uta100_missing_raceresult;
-CREATE VIEW uta100_missing_raceresult AS
-    SELECT AL.*, racetime, racestamp FROM uta100_athlete_location AS AL
-    LEFT JOIN uta100_raceresult AS RR
+-- Missing Race Record view --------------------------------------------------------------------
+DROP VIEW IF EXISTS uta100_missing_racelog;
+CREATE VIEW uta100_missing_racelog AS
+    SELECT AL.*, splittime, splitstamp, racetime, racestamp, todtime, todstamp FROM uta100_athlete_location AS AL
+    LEFT JOIN uta100_racelog AS RR
     USING (pid, location)
     WHERE RR.id IS NULL
     ORDER BY AL.pid, AL.location;
+
+-- Race Time Proportion of each athlete x middle location --------------------------------------
+DROP VIEW IF EXISTS uta100_racelog_proportion;
+CREATE VIEW uta100_racelog_proportion AS
+    SELECT C.location, C.pid,
+        C.racestamp - P.racestamp AS cpStamp, N.racestamp - P.racestamp AS npStamp,
+        (C.racestamp - P.racestamp) * 1.0 / (N.racestamp - P.racestamp) AS proportion
+      FROM uta100_full_racelog AS P, uta100_full_racelog AS C, uta100_full_racelog AS N
+      WHERE P.pid = C.pid AND C.pid = N.pid AND P.location = C.location - 1 AND N.location = C.location + 1
+      AND cpStamp NOT NULL AND npStamp NOT NULL
+      ORDER BY C.location, C.pid;
+
+-- Race Time Proportion's Mean of each middle location -----------------------------------------
+DROP VIEW IF EXISTS uta100_racelog_mean;
+CREATE VIEW uta100_racelog_mean AS
+    SELECT location, COUNT(pid) AS total, AVG(proportion) AS mean
+    FROM uta100_racelog_proportion
+    GROUP BY location;
+
+-- Race Time Proportion's Standard Deviation of each middle location ---------------------------
+DROP VIEW IF EXISTS uta100_racelog_std;
+CREATE VIEW uta100_racelog_std AS
+    SELECT lm.location AS location, lm.total AS ltotal, lm.mean AS lmean, SQRT(SUM(sq)/total) AS lstd
+    FROM uta100_racelog_mean AS lm
+    LEFT JOIN
+     (SELECT P.location, pid, proportion, mean, (proportion - mean) * (proportion - mean) AS sq
+      FROM uta100_racelog_proportion AS P
+      JOIN uta100_racelog_mean AS M
+      WHERE P.location = M.location) AS sq
+    ON lm.location = sq.location
+    GROUP BY lm.location;
+
+-- Log Error Detaction by 6 times of stanard deviation -----------------------------------------
+DROP VIEW IF EXISTS uta100_racelog_error;
+CREATE VIEW uta100_racelog_error AS
+    SELECT pid, P.location, proportion, lmean, lstd,
+      proportion - lmean AS ldiff,
+      lmean - lstd * 6.0 AS lmin, lmean + lstd * 6.0 AS lmax,
+      proportion < (lmean - lstd * 6.0) OR proportion > (lmean + lstd * 6.0) AS oor
+    FROM uta100_racelog_proportion AS P
+    LEFT JOIN uta100_racelog_std AS S
+    ON P.location = S.location
+    WHERE oor = 1 ORDER BY pid, P.location;
 
 
 ------------------------------------------------------------------------------------------------
