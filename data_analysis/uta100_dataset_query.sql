@@ -158,6 +158,7 @@ CREATE VIEW uta100_repair_changes AS
     WHERE RL.pid = FR.pid AND RL.location = FR.location AND
         (FR.racestamp <> RL.racestamp OR FR.splitstamp <> RL.splitstamp OR RL.racestamp IS NULL);
 
+-- proportion data based on the final race result
 DROP VIEW IF EXISTS uta100_final_proportion;
 CREATE VIEW uta100_final_proportion AS
     SELECT C.location, C.pid,
@@ -167,3 +168,47 @@ CREATE VIEW uta100_final_proportion AS
       WHERE P.pid = C.pid AND C.pid = N.pid AND P.location = C.location - 1 AND N.location = C.location + 1
       AND cpStamp NOT NULL AND npStamp NOT NULL
       ORDER BY C.location, C.pid;
+
+-- inspect the DNF distribution
+SELECT id, name, odometer, IFNULL(total, 0) AS dnf
+FROM uta100_location AS L
+LEFT JOIN (
+    SELECT lastcp, COUNT(id) AS total
+    FROM (
+        SELECT AT.id, AT.name, bib, category, gender, lastcp
+        FROM uta100_athlete AS AT, (
+            SELECT pid, MAX(location) AS lastcp FROM uta100_racelog GROUP BY pid
+        ) AS RL
+        WHERE AT.status = 2 AND AT.id = RL.pid) AS DNF
+    GROUP BY lastcp
+) AS DC
+ON L.id = DC.lastcp
+
+-- statistic: status X category
+SELECT S.abbr, C.category, IFNULL(T.total, 0) AS total FROM uta100_status AS S, uta100_category AS C
+LEFT JOIN (
+    SELECT category, status, COUNT(id) AS total FROM uta100_athlete GROUP BY category, status
+) AS T
+ON S.id = T.status AND C.id = T.category
+-- statistic: status X gender
+SELECT S.abbr, G.gender, IFNULL(T.total, 0) AS total FROM uta100_status AS S, uta100_gender AS G
+LEFT JOIN (
+    SELECT gender, status, COUNT(id) AS total FROM uta100_athlete GROUP BY gender, status
+) AS T
+ON S.id = T.status AND G.id = T.gender
+-- statisic: status X (category | gender)
+DROP VIEW IF EXISTS uta100_stats;
+CREATE VIEW uta100_stats AS
+    SELECT S.id, S.abbr, C.id AS cid, C.category AS class, IFNULL(T.total, 0) AS total
+    FROM uta100_status AS S, uta100_category AS C
+    LEFT JOIN (
+        SELECT category, status, COUNT(id) AS total FROM uta100_athlete GROUP BY category, status
+    ) AS T
+    ON S.id = T.status AND C.id = T.category
+    UNION
+    SELECT S.id, S.abbr, G.id AS cid, G.gender AS class, IFNULL(T.total, 0) AS total
+    FROM uta100_status AS S, uta100_gender AS G
+    LEFT JOIN (
+        SELECT gender, status, COUNT(id) AS total FROM uta100_athlete GROUP BY gender, status
+    ) AS T
+    ON S.id = T.status AND G.id = T.gender
