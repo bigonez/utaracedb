@@ -23,15 +23,15 @@ https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1
 2. Race Data Grabbing
 ---------------------
 
-program:	./result_grab/uta100_2023_grab.py
-database:	./result_grab/uta100_2023.sql
+program:    ./result_grab/uta100_2023_grab.py
+database:   ./result_grab/uta100_2023.sql
 			./result_grab/initialdb.bash
 			./result_grab/uta100_2023.db3
 
-race datatables:	uta100_athlete
+race datatables:    uta100_athlete
 					uta100_racelog
 
-system data tables:	uta100_location
+system data tables: uta100_location
 					uta100_status
 					uta100_category
 					uta100_gender
@@ -40,85 +40,85 @@ system data tables:	uta100_location
 3. Basic Statistic
 ------------------
 
-. status:	id	status			abbr
-			1	Finished		Finished
-			2	Did Not Finish	DNF
-			3	Not Yet Started	NYS
-	==>		status	total
-			1		834
-			2		149
-			3		125
-			sum		1108
+. status:   id  status          abbr
+			1   Finished        Finished
+			2   Did Not Finish  DNF
+			3   Not Yet Started NYS
+	==>     status  total
+			1       834
+			2       149
+			3       125
+			sum     1108
 
-. gender:	id	gender	abbr
-			1	Male	M
-			2	Female	F
-	Query	SELECT S.id AS status, S.abbr AS status_desc, G.id AS gender, G.gender AS gender_desc, IFNULL(total, 0) AS total
+. gender:   id  gender  abbr
+			1   Male    M
+			2   Female  F
+	Query   SELECT S.id AS status, S.abbr AS status_desc, G.id AS gender, G.gender AS gender_desc, IFNULL(total, 0) AS total
 			FROM uta100_status AS S, uta100_gender AS G
 			LEFT JOIN (SELECT status, gender, COUNT(id) AS total FROM uta100_athlete GROUP BY status, gender) AS T
 			ON G.id = T.gender AND S.id = T.status
-	==>		status	status_desc	gender	gender_desc	total
-			1		Finished	1		Male		671
-			1		Finished	2		Female		163
-			2		DNF			1		Male		122
-			2		DNF			2		Female		27
-			3		NYS			1		Male		102
-			3		NYS			2		Female		23
+	==>     status  status_desc gender  gender_desc total
+			1       Finished    1       Male        671
+			1       Finished    2       Female      163
+			2       DNF         1       Male        122
+			2       DNF         2       Female      27
+			3       NYS         1       Male        102
+			3       NYS         2       Female      23
 
-. catagory:	id	category
-			1	18-24
-			2	25-29
-			3	30-34
-			4	35-39
-			5	40-44
-			6	45-49
-			7	50-54
-			8	55-59
-			9	60-64
-			10	65-69
-			11	70-74
-			12	75+
-	Query	SELECT S.id AS status, S.abbr AS status_desc, C.id AS category, C.category AS category_desc, IFNULL(total, 0) AS total
+. catagory: id  category
+			1   18-24
+			2   25-29
+			3   30-34
+			4   35-39
+			5   40-44
+			6   45-49
+			7   50-54
+			8   55-59
+			9   60-64
+			10  65-69
+			11  70-74
+			12  75+
+	Query   SELECT S.id AS status, S.abbr AS status_desc, C.id AS category, C.category AS category_desc, IFNULL(total, 0) AS total
 			FROM uta100_status AS S, uta100_category AS C
 			LEFT JOIN (SELECT status, category, COUNT(id) AS total FROM uta100_athlete GROUP BY status, category) AS T
 			ON C.id = T.category AND S.id = T.status
-	==>		status	status_desc	category	category_desc	total
-			1		Finished	1			18-24			23
-			1		Finished	2			25-29			75
-			1		Finished	3			30-34			117
-			1		Finished	4			35-39			128
-			1		Finished	5			40-44			160
-			1		Finished	6			45-49			130
-			1		Finished	7			50-54			98
-			1		Finished	8			55-59			62
-			1		Finished	9			60-64			30
-			1		Finished	10			65-69			8
-			1		Finished	11			70-74			3
-			1		Finished	12			75+				0
-			2		DNF			1			18-24			8
-			2		DNF			2			25-29			8
-			2		DNF			3			30-34			22
-			2		DNF			4			35-39			25
-			2		DNF			5			40-44			18
-			2		DNF			6			45-49			34
-			2		DNF			7			50-54			16
-			2		DNF			8			55-59			9
-			2		DNF			9			60-64			8
-			2		DNF			10			65-69			0
-			2		DNF			11			70-74			1
-			2		DNF			12			75+				0
-			3		NYS			1			18-24			0
-			3		NYS			2			25-29			10
-			3		NYS			3			30-34			17
-			3		NYS			4			35-39			17
-			3		NYS			5			40-44			15
-			3		NYS			6			45-49			22
-			3		NYS			7			50-54			23
-			3		NYS			8			55-59			13
-			3		NYS			9			60-64			5
-			3		NYS			10			65-69			2
-			3		NYS			11			70-74			0
-			3		NYS			12			75+				1
+	==>     status  status_desc category    category_desc   total
+			1       Finished    1           18-24           23
+			1       Finished    2           25-29           75
+			1       Finished    3           30-34           117
+			1       Finished    4           35-39           128
+			1       Finished    5           40-44           160
+			1       Finished    6           45-49           130
+			1       Finished    7           50-54           98
+			1       Finished    8           55-59           62
+			1       Finished    9           60-64           30
+			1       Finished    10          65-69           8
+			1       Finished    11          70-74           3
+			1       Finished    12          75+             0
+			2       DNF         1           18-24           8
+			2       DNF         2           25-29           8
+			2       DNF         3           30-34           22
+			2       DNF         4           35-39           25
+			2       DNF         5           40-44           18
+			2       DNF         6           45-49           34
+			2       DNF         7           50-54           16
+			2       DNF         8           55-59           9
+			2       DNF         9           60-64           8
+			2       DNF         10          65-69           0
+			2       DNF         11          70-74           1
+			2       DNF         12          75+             0
+			3       NYS         1           18-24           0
+			3       NYS         2           25-29           10
+			3       NYS         3           30-34           17
+			3       NYS         4           35-39           17
+			3       NYS         5           40-44           15
+			3       NYS         6           45-49           22
+			3       NYS         7           50-54           23
+			3       NYS         8           55-59           13
+			3       NYS         9           60-64           5
+			3       NYS         10          65-69           2
+			3       NYS         11          70-74           0
+			3       NYS         12          75+             1
 
 
 4. Data Views
@@ -147,33 +147,40 @@ system data tables:	uta100_location
 
 . uta100_racelog_error
 	if P(n) < M(n) - S(n) x 6 or P(n) > M(n) - S(n) x 6
-		oor = 1 	consider as a potential timing error
+		oor = 1     consider as a potential timing error
 	else
-		oor = 0 	consider as normal
+		oor = 0     consider as normal
 
 
 5. Data Validate & Fix
 ----------------------
 
+. include the work of part 5 & 6 into uta100_2023_datarepair.py
+. create new table, uta100_finalresult, by duplicate the view, uta100_full_racelog
+. store all changes of race log records into the new table, uta100_finalresult
+
 Based on the list of uta100_racelog_error, do the manual repairment
 	=>
-	pid	location	proportion			lmean				lstd				ldiff				lmin				lmax				oor		Status
-	59	5			0.324018629407851	0.495897616175512	0.0243399624673894	-0.171878986767661	0.349857841371175	0.641937390979848	1		Fixed	+1800
-	128	8			-0.277258064516129	0.219898738921832	0.0246823545315223	-0.497156803437962	0.0718046117326985	0.367992866110966	1		Fixed	+3600
-	252	8			0.0277975766215253	0.219898738921832	0.0246823545315223	-0.192101162300307	0.0718046117326985	0.367992866110966	1		Fixed	+1200
-	342	4			0.862114683460391	0.348252588406602	0.0251488437406469	0.513862095053789	0.19735952596272	0.499145650850484	1		Hold         
-	342	5			0.0421863908325728	0.495897616175512	0.0243399624673894	-0.453711225342939	0.349857841371175	0.641937390979848	1		Fixed	+3600
-	457	19			0.809701492537313	0.914246219923882	0.0132354868648201	-0.104544727386569	0.834833298734962	0.993659141112803	1		Hold	     
-	566	4			0.574149659863946	0.348252588406602	0.0251488437406469	0.225897071457344	0.19735952596272	0.499145650850484	1		Hold         
-	566	5			0.169204432831787	0.495897616175512	0.0243399624673894	-0.326693183343725	0.349857841371175	0.641937390979848	1		Fixed	+3600
-	662	6			0.707358294331773	0.937742397874541	0.0383320983027269	-0.230384103542767	0.707749808058179	1.1677349876909		1		Hold	     
+	pid location    proportion          lmean               lstd                ldiff               lmin                lmax                oor     Status
+	59  5           0.324018629407851   0.495897616175512   0.0243399624673894  -0.171878986767661  0.349857841371175   0.641937390979848   1       Fixed   +1800
+	128 8           -0.277258064516129  0.219898738921832   0.0246823545315223  -0.497156803437962  0.0718046117326985  0.367992866110966   1       Fixed   +3600
+	252 8           0.0277975766215253  0.219898738921832   0.0246823545315223  -0.192101162300307  0.0718046117326985  0.367992866110966   1       Fixed   +1200
+	342 4           0.862114683460391   0.348252588406602   0.0251488437406469  0.513862095053789   0.19735952596272    0.499145650850484   1       Hold
+	342 5           0.0421863908325728  0.495897616175512   0.0243399624673894  -0.453711225342939  0.349857841371175   0.641937390979848   1       Fixed   +3600
+	457 19          0.809701492537313   0.914246219923882   0.0132354868648201  -0.104544727386569  0.834833298734962   0.993659141112803   1       Hold
+	566 4           0.574149659863946   0.348252588406602   0.0251488437406469  0.225897071457344   0.19735952596272    0.499145650850484   1       Hold
+	566 5           0.169204432831787   0.495897616175512   0.0243399624673894  -0.326693183343725  0.349857841371175   0.641937390979848   1       Fixed   +3600
+	662 6           0.707358294331773   0.937742397874541   0.0383320983027269  -0.230384103542767  0.707749808058179   1.1677349876909     1       Hold
 
-5.1 fix the timestamp, tod stamp & split stamp on the pid & location (n)
+	* for the running segement, the race time can't be too short;
+	  for the CP period, the time is allowed to be longer
 
-5.2 fix the split stamp on the pid & location (n+1)
+. fix 5 records with the race time shift, hold on 4 records without change
+. fix the timestamp, tod stamp & split stamp on the pid & location (n) in uta100_finalresult
+. fix the split stamp on the pid & location (n+1) in uta100_finalresult
 
 
-6. Missing Data Repair
+6. Missing Data Refill
 ----------------------
 
 All missing data listed in the view uta100_missing_racelog. There is 23 records that needs to be repaired.
@@ -184,13 +191,26 @@ The repairment policy is to apply the mean calculated above to estimate the miss
 	RS(n) = RS(n-1) + (RS(n+1) - RS(n-1)) x M(n)
 
 6.2 two continuous records (timestamp) missing
-	location	a, b, c, d = n-1, n, n+1, n+2
-	timestamp	RS(a), RS(b), RS(c), RS(d)
-		  			   M(b)   M(c)
-	know		RS(a), RS(d), M(b), M(c)
-	est.		RS(b), RS(c)
-	extra		SS(d)
+	location    a, b, c, d = n-1, n, n+1, n+2
+	-------------------------------------------
+	timestamp   RS(a), RS(b), RS(c), RS(d)
+	proportion         M(b)   M(c)
+	-------------------------------------------
+	know        RS(a), RS(d), M(b), M(c)
+	-------------------------------------------
+	est.        RS(b), RS(c)
+	extra       SS(d)
 
 6.3 update the split timestamp, race timestamp & TOD timestamp of missing record (n) in uta100_finalresult
 
 6.4 update the split timestamp of extra record (n+1/n+2) in uta100_finalresult
+
+
+7. Race Log Change Dataset
+--------------------------
+
+After fix the wrong records and refill the missing records. Compare the table, uta100_finalresult, with the
+view, uta100_full_racelog to get the change dataset of race log records, uta100_repair_changes.
+
+. there are 5 wrong log, 23 missing log
+. total 55 records got the change, 26 x 2 + 1 x 3
