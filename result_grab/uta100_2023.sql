@@ -224,6 +224,20 @@ CREATE VIEW uta100_racelog_error AS
     ON P.location = S.location
     WHERE oor = 1 ORDER BY pid, P.location;
 
+-- Changes between the original log and the repaired dataset -----------------------------------
+DROP VIEW IF EXISTS uta100_repair_changes;
+CREATE VIEW uta100_repair_changes AS
+    SELECT RL.pid, RL.location,
+        RL.splittime AS Ast, RL.splitstamp AS Ass,
+        FR.splittime AS Bst, FR.splitstamp AS Bss,
+        RL.racetime AS Art, RL.racestamp AS Ars,
+        FR.racetime AS Brt, FR.racestamp AS Brs, FR.racestamp - RL.racestamp AS Drs,
+        RL.todtime AS Att, RL.todstamp AS Ats,
+        FR.todtime AS Btt, FR.todstamp AS Bts
+    FROM uta100_finalresult AS FR, uta100_full_racelog AS RL
+    WHERE RL.pid = FR.pid AND RL.location = FR.location AND
+        (FR.racestamp <> RL.racestamp OR FR.splitstamp <> RL.splitstamp OR RL.racestamp IS NULL);
+
 
 ------------------------------------------------------------------------------------------------
 END TRANSACTION;
