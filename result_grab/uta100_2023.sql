@@ -238,6 +238,17 @@ CREATE VIEW uta100_repair_changes AS
     WHERE RL.pid = FR.pid AND RL.location = FR.location AND
         (FR.racestamp <> RL.racestamp OR FR.splitstamp <> RL.splitstamp OR RL.racestamp IS NULL);
 
+-- proportion data based on the final race result ----------------------------------------------
+DROP VIEW IF EXISTS uta100_final_proportion;
+CREATE VIEW uta100_final_proportion AS
+    SELECT C.location, C.pid,
+        C.racestamp - P.racestamp AS cpStamp, N.racestamp - P.racestamp AS npStamp,
+        (C.racestamp - P.racestamp) * 1.0 / (N.racestamp - P.racestamp) AS proportion
+      FROM uta100_finalresult AS P, uta100_finalresult AS C, uta100_finalresult AS N
+      WHERE P.pid = C.pid AND C.pid = N.pid AND P.location = C.location - 1 AND N.location = C.location + 1
+      AND cpStamp NOT NULL AND npStamp NOT NULL
+      ORDER BY C.location, C.pid;
+
 
 ------------------------------------------------------------------------------------------------
 END TRANSACTION;
