@@ -202,7 +202,7 @@ CREATE VIEW uta100_racelog_mean AS
 -- Race Time Proportion's Standard Deviation of each middle location ---------------------------
 DROP VIEW IF EXISTS uta100_racelog_std;
 CREATE VIEW uta100_racelog_std AS
-    SELECT lm.location AS location, lm.total AS ltotal, lm.mean AS lmean, SQRT(SUM(sq)/total) AS lstd
+    SELECT lm.location AS location, lm.total AS total, lm.mean AS mean, SQRT(SUM(sq)/total) AS std
     FROM uta100_racelog_mean AS lm
     LEFT JOIN
      (SELECT P.location, pid, proportion, mean, (proportion - mean) * (proportion - mean) AS sq
@@ -215,10 +215,10 @@ CREATE VIEW uta100_racelog_std AS
 -- Log Error Detaction by 6 times of stanard deviation -----------------------------------------
 DROP VIEW IF EXISTS uta100_racelog_error;
 CREATE VIEW uta100_racelog_error AS
-    SELECT pid, P.location, proportion, lmean, lstd,
-      proportion - lmean AS ldiff,
-      lmean - lstd * 6.0 AS lmin, lmean + lstd * 6.0 AS lmax,
-      proportion < (lmean - lstd * 6.0) OR proportion > (lmean + lstd * 6.0) AS oor
+    SELECT pid, P.location, proportion, mean, std,
+      proportion - mean AS ldiff,
+      mean - std * 6.0 AS lmin, mean + std * 6.0 AS lmax,
+      proportion < (mean - std * 6.0) OR proportion > (mean + std * 6.0) AS oor
     FROM uta100_racelog_proportion AS P
     LEFT JOIN uta100_racelog_std AS S
     ON P.location = S.location
@@ -248,6 +248,26 @@ CREATE VIEW uta100_final_proportion AS
       WHERE P.pid = C.pid AND C.pid = N.pid AND P.location = C.location - 1 AND N.location = C.location + 1
       AND cpStamp NOT NULL AND npStamp NOT NULL
       ORDER BY C.location, C.pid;
+
+-- Final Proportion's Mean of each middle location ---------------------------------------------
+DROP VIEW IF EXISTS uta100_final_mean;
+CREATE VIEW uta100_final_mean AS
+    SELECT location, COUNT(pid) AS total, AVG(proportion) AS mean
+    FROM uta100_final_proportion
+    GROUP BY location;
+
+-- Final Proportion's Standard Deviation of each middle location -------------------------------
+DROP VIEW IF EXISTS uta100_final_std;
+CREATE VIEW uta100_final_std AS
+    SELECT lm.location AS location, lm.total AS total, lm.mean AS mean, SQRT(SUM(sq)/total) AS std
+    FROM uta100_final_mean AS lm
+    LEFT JOIN
+     (SELECT P.location, pid, proportion, mean, (proportion - mean) * (proportion - mean) AS sq
+      FROM uta100_final_proportion AS P
+      JOIN uta100_final_mean AS M
+      WHERE P.location = M.location) AS sq
+    ON lm.location = sq.location
+    GROUP BY lm.location;
 
 
 ------------------------------------------------------------------------------------------------

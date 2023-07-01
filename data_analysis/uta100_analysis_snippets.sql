@@ -169,6 +169,26 @@ CREATE VIEW uta100_final_proportion AS
       AND cpStamp NOT NULL AND npStamp NOT NULL
       ORDER BY C.location, C.pid;
 
+-- Final Proportion's Mean of each middle location
+DROP VIEW IF EXISTS uta100_final_mean;
+CREATE VIEW uta100_final_mean AS
+    SELECT location, COUNT(pid) AS total, AVG(proportion) AS mean
+    FROM uta100_final_proportion
+    GROUP BY location;
+
+-- Final Proportion's Standard Deviation of each middle location
+DROP VIEW IF EXISTS uta100_final_std;
+CREATE VIEW uta100_final_std AS
+    SELECT lm.location AS location, lm.total AS total, lm.mean AS mean, SQRT(SUM(sq)/total) AS std
+    FROM uta100_final_mean AS lm
+    LEFT JOIN
+     (SELECT P.location, pid, proportion, mean, (proportion - mean) * (proportion - mean) AS sq
+      FROM uta100_final_proportion AS P
+      JOIN uta100_final_mean AS M
+      WHERE P.location = M.location) AS sq
+    ON lm.location = sq.location
+    GROUP BY lm.location;
+
 -- inspect the DNF distribution
 SELECT id, name, odometer, IFNULL(total, 0) AS dnf
 FROM uta100_location AS L
@@ -212,3 +232,17 @@ CREATE VIEW uta100_stats AS
         SELECT gender, status, COUNT(id) AS total FROM uta100_athlete GROUP BY gender, status
     ) AS T
     ON S.id = T.status AND G.id = T.gender
+
+DROP VIEW IF EXISTS uta100_finishtime_stats;
+CREATE VIEW uta100_finishtime_stats AS
+    SELECT finishhour, COUNT(id) AS total
+    FROM (SELECT id, racetime, racestamp, racestamp/3600 AS finishhour
+          FROM uta100_athlete
+          WHERE status=1) AS finishtime
+    GROUP BY finishhour
+
+-- Optimal Proportion's Mean of each middle location
+SELECT location, COUNT(pid) AS total, AVG(proportion) AS mean
+FROM uta100_final_proportion
+WHERE pid >= 1 AND pid <= 10
+GROUP BY location;
