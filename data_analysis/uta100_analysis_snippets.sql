@@ -233,6 +233,14 @@ CREATE VIEW uta100_stats AS
     ) AS T
     ON S.id = T.status AND G.id = T.gender
 
+DROP VIEW IF EXISTS uta100_finishtime_stats;
+CREATE VIEW uta100_finishtime_stats AS
+    SELECT finishhour, COUNT(id) AS total
+    FROM (SELECT id, racetime, racestamp, racestamp/3600 AS finishhour
+          FROM uta100_athlete
+          WHERE status=1) AS finishtime
+    GROUP BY finishhour
+
 -- Optimal Proportion's Mean of each middle location
 SELECT location, COUNT(pid) AS total, AVG(proportion) AS mean
 FROM uta100_final_proportion

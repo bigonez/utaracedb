@@ -92,20 +92,25 @@ def main(RaceTime, UseLimit, UseStart):
 	print("{:>24}: {} hours\n{:>24}: {} [{}, {}]\n{}".format(
 		"Expected Finish Time", RaceTime, "Athlete Dataset", UseLimit, UseStart, UseStart + UseLimit - 1, '-'*50
 	))
-	print("   {:>4}   {:^10}   {:^10}   {:^10}".format('No.', 'Full', 'Optimal', 'Diff'))
+	print(" {:>4}   {:^10}   {:^10}   {:^10}".format('No.', 'Full', 'Optimal', 'Diff'))
 
 	FinalProportionData = getProportionData(utaDb, None, None)
 	OptimalProportionData = getProportionData(utaDb, UseLimit, UseStart)
 
 	ExpectRaceTime = round(RaceTime * 3600)										# unit: hours -> seconds
 
+	ArraiveIds = [6, 9, 11, 13, 15]
 	FinalPercents   = proport2percent(FinalProportionData)
 	OptimalPercents = proport2percent(OptimalProportionData)
 	for cpid in range(len(FinalPercents)):
 		finalTime   = round((FinalPercents[cpid + 1]   * ExpectRaceTime) / 60) * 60
 		optimalTime = round((OptimalPercents[cpid + 1] * ExpectRaceTime) / 60) * 60
-		print("  {:>4d}   {:>10}   {:>10}   {:>10}".format(
-			cpid + 1, strRecetime(finalTime), strRecetime(optimalTime), strRecetime(finalTime - optimalTime, True)
+		if (cpid + 1) in ArraiveIds:
+			tailflag = '(*)'
+		else:
+			tailflag = ''
+		print("{:>4d}   {:>10}   {:>10}   {:>10}   {}".format(
+			cpid + 1, strRecetime(finalTime), strRecetime(optimalTime), strRecetime(finalTime - optimalTime, True), tailflag
 		))
 
 	utaDb.close()
