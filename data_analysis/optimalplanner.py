@@ -1,27 +1,37 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sqlite3, sys, os.path, time, datetime
+import sqlite3, sys, os.path, time, datetime, math
 
-def getProportionData(utaDb, useLimit, useStart):
+def getProportionData(utaDb, raceTime, useLimit):
 
-	meanQuery = "SELECT location, AVG(proportion) AS mean FROM uta100_final_proportion"
+	optimalQuery = "SELECT location, AVG(proportion) AS mean, lpid, upid FROM uta100_final_proportion"
 	if useLimit:
-		meanQuery += " WHERE pid >= {} AND pid <= {}".format(useStart, useStart + useLimit - 1)
-	meanQuery += " GROUP BY location"
+		optimalQuery += """ LEFT JOIN (SELECT MIN(id) AS lpid, MAX(id) AS upid FROM ( \
+		  SELECT id, racetime, racestamp, ABS(racestamp - {}*3600) AS rsdiff \
+		  FROM uta100_athlete \
+		  WHERE status=1 \
+		  ORDER BY rsdiff \
+		  LIMIT {} \
+		 )) \
+		 WHERE pid >= lpid AND pid <= upid""".format(raceTime, useLimit)
+	else:
+		optimalQuery += " LEFT JOIN (SELECT MIN(id) AS lpid, MAX(id) AS upid FROM uta100_athlete WHERE status=1)"
+	optimalQuery += " GROUP BY location"
 
 	pCur = utaDb.cursor()
 
-	pCur.execute(meanQuery)
+	pCur.execute(optimalQuery)
 	meanList = pCur.fetchall()
 
 	pCur.close()
 
 	ProportionData = {}
-	for cpid, proportion in meanList:
+	lpid, upid = 0, 0
+	for cpid, proportion, lpid, upid in meanList:
 		ProportionData[cpid] = proportion
 
-	return ProportionData
+	return ProportionData, lpid, upid
 
 def proport2percent(ProportionData):
 	CpPercents = {
@@ -79,29 +89,46 @@ def strTimeDelta(td, digits):
 
 	return prefix + "{:d}:{:02d}:{:0{}.{}f}".format(hours, minutes, seconds, sw, digits)
 
-def main(RaceTime, UseLimit, UseStart):
+def main(RaceTime, UseLimit):
 
 	# intital the SQLite3 database
-	utaDbName = "uta100_2023.db3"
+	utaDbPath = os.path.abspath(os.path.dirname(__file__))
+	utaDbName = os.path.join(utaDbPath, "uta100_2023.db3")
 	if os.path.exists(utaDbName):
 		utaDb = sqlite3.connect(utaDbName)
 	else:
 		sys.exit(" !!! Failed to load the database")
 
 	print("{}\n  {:18}{:>28}\n{}".format('='*50, 'Race Time Planner', 'UTA100 2023', '-'*50))
-	print("{:>24}: {} hours\n{:>24}: {} [{}, {}]\n{}".format(
-		"Expected Finish Time", RaceTime, "Athlete Dataset", UseLimit, UseStart, UseStart + UseLimit - 1, '-'*50
-	))
-	print(" {:>4}   {:^10}   {:^10}   {:^10}".format('No.', 'Full', 'Optimal', 'Diff'))
 
-	FinalProportionData = getProportionData(utaDb, None, None)
-	OptimalProportionData = getProportionData(utaDb, UseLimit, UseStart)
+	FinalProportionData, lpid, upid = getProportionData(utaDb, None, None)
+	OptimalProportionData, lpid, upid = getProportionData(utaDb, RaceTime, UseLimit)
+
+	utaDb.close()
 
 	ExpectRaceTime = round(RaceTime * 3600)										# unit: hours -> seconds
 
 	ArraiveIds = [6, 9, 11, 13, 15]
 	FinalPercents   = proport2percent(FinalProportionData)
 	OptimalPercents = proport2percent(OptimalProportionData)
+
+	print("{:>27}: {} hours\n{:>27}: {} [{}, {}]".format(
+		"Expected Finish Time", RaceTime, "Optimal Athlete Dataset", UseLimit, lpid, upid
+	))
+	print('-'*50 + "\n {:>4}   {:^18}   {:^18}".format('No.', 'Full', 'Optimal'))
+	for cpid in FinalProportionData.keys():
+		print("{:>4d}   {:>18.12f}   {:>18.12f}".format(
+			cpid, FinalProportionData[cpid], OptimalProportionData[cpid]
+		))
+	print('-'*50 + "\n {:>4}   {:^18}    {:^18}".format('No.', 'Encrypt Full', 'Encrypt Optimal'))
+	for cpid in FinalProportionData.keys():
+		fp = math.exp(math.pi - FinalProportionData[cpid])
+		op = math.exp(math.pi - OptimalProportionData[cpid])
+		print("{:>4d}   {:>18.12f}   {:>18.12f}".format(
+			cpid, fp, op
+		))
+
+	print('-'*50 + "\n {:>4}   {:^10}   {:^10}   {:^10}".format('No.', 'Full', 'Optimal', 'Diff'))
 	for cpid in range(len(FinalPercents)):
 		finalTime   = round((FinalPercents[cpid + 1]   * ExpectRaceTime) / 60) * 60
 		optimalTime = round((OptimalPercents[cpid + 1] * ExpectRaceTime) / 60) * 60
@@ -113,8 +140,6 @@ def main(RaceTime, UseLimit, UseStart):
 			cpid + 1, strRecetime(finalTime), strRecetime(optimalTime), strRecetime(finalTime - optimalTime, True), tailflag
 		))
 
-	utaDb.close()
-
 	print("{}".format('='*50))
 
 if __name__ == '__main__':
@@ -122,12 +147,8 @@ if __name__ == '__main__':
 
 	RaceTime = float(sys.argv[1])
 	UseLimit = int(sys.argv[2])
-	if len(sys.argv) > 3:
-		UseStart = int(sys.argv[3])
-	else:
-		UseStart = 1
 
-	main(RaceTime, UseLimit, UseStart)
+	main(RaceTime, UseLimit)
 
 	finishTime = time.time()
 	processTime = datetime.timedelta(seconds=(finishTime - startTime))
