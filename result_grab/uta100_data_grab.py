@@ -7,9 +7,9 @@ import sqlite3
 
 intervalTime = 7
 awaitTime = 300
-defaultAtheletes = 50
+pageRows = 50
 hrefRoot = "https://www.multisportaustralia.com.au"
-entryUrl = hrefRoot + "/races/ultra-trail-australia-2024/events/1/"
+entryUrl = hrefRoot + "/races/ultra-trail-australia-2024/events/1"
 
 CategoryList = [
 	"18-19",
@@ -62,7 +62,21 @@ def cleanPreviousResultData(utaDb):
 	pCur.close()
 	utaDb.commit()
 
-def grabOverAll(utaDb, overallUrl):
+def getLastPid(hk100Db):
+	try:
+		pCur = hk100Db.cursor()
+		pRes = pCur.execute( "SELECT max(id) AS pid FROM uta100_athlete" )
+		lastPid = pRes.fetchone()[0]
+		if lastPid is None :
+			lastPid = 0
+
+		pCur.close()
+	except:
+		lastPid = 0
+
+	return lastPid
+
+def grabOverAll(utaDb, overallUrl, skipAhead):
 	athleteQuery = "INSERT INTO uta100_athlete VALUES(NULL{})"
 
 	# grab the all overall page
@@ -89,9 +103,14 @@ def grabOverAll(utaDb, overallUrl):
 		articleContainerTitle = overallSoup.find("tbody")
 
 		# deal with each row in the page
+		totalAthletes = pageRows * (curPage - 1) + skipAhead
 		overallRecords = articleContainerTitle.find_all("tr")
+		if skipAhead > 0:
+			for i in range(skipAhead):
+				overallRecords.pop(0)
+			skipAhead = 0
 		pageAthletes = len(overallRecords)
-		totalAthletes = defaultAtheletes * (curPage - 1) + pageAthletes
+		totalAthletes += pageAthletes
 		print("\b\b\b\b\b, {}, {}".format(pageAthletes, totalAthletes))
 
 		for overallRecord in overallRecords:
@@ -335,18 +354,23 @@ def main():
 	utaDbName = "uta100_nodes.db3"
 	if os.path.exists(utaDbName):
 		utaDb = sqlite3.connect(utaDbName)
-		cleanPreviousResultData(utaDb)
+		#-- cleanPreviousResultData(utaDb)
+		lastPid = getLastPid(utaDb)
 	else:
 		utaDb = None
 
 	# grab the overall information for the offical race result web site
 	print("{}\n  {:18}{:>28}\n{}".format('='*50, 'Race Result', 'UTA100 2024', '-'*50))
 
+	overallUrl = entryUrl
+	if lastPid > 0:
+		overallUrl += "?page={}".format(lastPid // pageRows + 1)
+
 	totalPages = 0
 	totalAthletes = 0
 	totalStatus = [0, 0, 0]
 	lastPage = 0
-	for overallRow, curPage in grabOverAll(utaDb, entryUrl):
+	for overallRow, curPage in grabOverAll(utaDb, overallUrl, lastPid % pageRows):
 		if curPage != lastPage:
 			lastPage = curPage
 			# display the waiting animation
