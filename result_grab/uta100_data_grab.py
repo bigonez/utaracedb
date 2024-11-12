@@ -99,7 +99,7 @@ def grabOverAll(utaDb, overallUrl, skipAhead):
 				response = requests.get(overallUrl)
 				break
 			except:
-				print("\t!!! Connection refused by the server, sleep {} seconds then try again !!!".format(awaitTime))
+				print("\n\t!!! Connection refused by the server, sleep {} seconds then try again !!!\n".format(awaitTime))
 				time.sleep(awaitTime)
 				continue
 		html_doc = response.text
@@ -226,7 +226,7 @@ def grabIndividual(utaDb, overallRow):
 			response = requests.get(fhref)
 			break
 		except:
-			print("\t!!! Connection refused by the server, sleep {} seconds then try again !!!".format(awaitTime))
+			print("\n\t!!! Connection refused by the server, sleep {} seconds then try again !!!\n".format(awaitTime))
 			time.sleep(awaitTime)
 			continue
 	html_doc = response.text
