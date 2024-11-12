@@ -90,7 +90,7 @@ CREATE TABLE uta100_status (
 );
 INSERT INTO uta100_status VALUES(NULL, 'Finished', 'Finished');
 INSERT INTO uta100_status VALUES(NULL, 'Did Not Finish', 'DNF');
-INSERT INTO uta100_status VALUES(NULL, 'Not Yet Started', 'NYS');
+INSERT INTO uta100_status VALUES(NULL, 'Did Not Start', 'DNS');
 
 
 /*
