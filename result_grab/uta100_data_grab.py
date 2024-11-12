@@ -268,20 +268,20 @@ def asIntField(s):
 		return None
 
 def asFloatField(s):
-	match = re.search("^(\d*\.\d*)$", s)
+	match = re.search(r"^(\d*\.\d*)$", s)
 	if match:
 		return float(match.group(1))
 	else:
-		return None
+		return asIntField(s)
 
 def asPaceField(s):
-	if re.search("^\d+:\d+$", s):
+	if re.search(r"^\d+:\d+$", s):
 		return s
 	else:
 		return None
 
 def HmsToSeconds(timestr):
-	hms = re.search("^(\d+):(\d+):(\d+)$", timestr)
+	hms = re.search(r"^(\d+):(\d+):(\d+)$", timestr)
 	if hms:
 		h, m, s = int(hms.group(1)), int(hms.group(2)), int(hms.group(3))
 		return h * 3600 + m * 60 + s
