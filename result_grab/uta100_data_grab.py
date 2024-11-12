@@ -10,6 +10,7 @@ awaitTime = 300
 pageRows = 50
 hrefRoot = "https://www.multisportaustralia.com.au"
 entryUrl = hrefRoot + "/races/ultra-trail-australia-2024/events/1"
+utaDbName = "./uta100_nodes.db3"
 
 CategoryList = [
 	"18-19",
@@ -62,7 +63,7 @@ def cleanPreviousResultData(utaDb):
 	pCur.close()
 	utaDb.commit()
 
-def getLastPid(hk100Db):
+def getPreviousInfo(hk100Db):
 	try:
 		pCur = hk100Db.cursor()
 		pRes = pCur.execute( "SELECT max(id) AS pid FROM uta100_athlete" )
@@ -70,11 +71,18 @@ def getLastPid(hk100Db):
 		if lastPid is None :
 			lastPid = 0
 
+		pRes = pCur.execute("SELECT sl.id AS status, IFNULL(st.st, 0) AS st FROM uta100_status AS sl \
+				LEFT JOIN (SELECT status, count(id) AS st FROM uta100_athlete GROUP BY status) AS st \
+				ON sl.id = st.status ORDER BY sl.id ASC")
+		statusList = []
+		for slRec in pRes.fetchall():
+			statusList.append(int(slRec[1]))
+
 		pCur.close()
 	except:
 		lastPid = 0
 
-	return lastPid
+	return lastPid, statusList
 
 def grabOverAll(utaDb, overallUrl, skipAhead):
 	athleteQuery = "INSERT INTO uta100_athlete VALUES(NULL{})"
@@ -348,16 +356,17 @@ def strTimeDelta(td, digits):
 
 	return prefix + "{:d}:{:02d}:{:0{}.{}f}".format(hours, minutes, seconds, sw, digits)
 
-def main():
+def main(entryUrl, utaDbName):
 
 	# intital the SQLite3 database
-	utaDbName = "uta100_nodes.db3"
 	if os.path.exists(utaDbName):
 		utaDb = sqlite3.connect(utaDbName)
 		#-- cleanPreviousResultData(utaDb)
-		lastPid = getLastPid(utaDb)
+		lastPid, statusList = getPreviousInfo(utaDb)
 	else:
 		utaDb = None
+		print("\t!!! The database, {}, is missing. !!!".format(utaDbName))
+		return
 
 	# grab the overall information for the offical race result web site
 	print("{}\n  {:18}{:>28}\n{}".format('='*50, 'Race Result', 'UTA100 2024', '-'*50))
@@ -366,9 +375,9 @@ def main():
 	if lastPid > 0:
 		overallUrl += "?page={}".format(lastPid // pageRows + 1)
 
-	totalPages = 0
-	totalAthletes = 0
-	totalStatus = [0, 0, 0]
+	totalPages = lastPid // pageRows + 1
+	totalAthletes = lastPid
+	totalStatus = statusList
 	lastPage = 0
 	for overallRow, curPage in grabOverAll(utaDb, overallUrl, lastPid % pageRows):
 		if curPage != lastPage:
@@ -404,7 +413,7 @@ def main():
 if __name__ == '__main__':
 	startTime = time.time()
 
-	main()
+	main(entryUrl, utaDbName)
 
 	finishTime = time.time()
 	processTime = datetime.timedelta(seconds=(finishTime - startTime))
