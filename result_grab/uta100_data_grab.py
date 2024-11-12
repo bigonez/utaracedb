@@ -9,9 +9,8 @@ intervalTime = 5
 hrefRoot = "https://www.multisportaustralia.com.au"
 
 CategoryList = [
-	"18-24",
-	"25-29",
-	"30-34",
+	"18-19",
+	"20-34",
 	"35-39",
 	"40-44",
 	"45-49",
@@ -20,7 +19,7 @@ CategoryList = [
 	"60-64",
 	"65-69",
 	"70-74",
-	"75+"
+	"75-79"
 ]
 GenderList = [
 	"Male",
@@ -28,23 +27,21 @@ GenderList = [
 ]
 LocationList = [
 	"Start",
-	"Scenic World",
-	"Furber Pass",
-	"Golden Stairs",
-	"Duncan Pass",
+	"Narrow Neck",
+	"Medow Gap",
 	"Foggy Knob Arrive",
 	"Foggy Knob Depart",
-	"IronPot",
 	"Six Ft Track Arrive",
 	"Six Ft Track Depart",
 	"Aquatic Centre Arrive",
 	"Aquatic Centre Depart",
+	"Gordon Falls",
 	"Fairmount Arrive",
 	"Fairmount Depart",
 	"QVH Arrive",
 	"QVH Depart",
-	"TWM",
-	"Furber Stairs",
+	"EAS",
+	"Echo Point",
 	"BoardWalk",
 	"Finish"
 ]
@@ -99,7 +96,7 @@ def grabOverAll(utaDb, overallUrl):
 			elif tpos == 'DNF':
 				fstatus = 2
 				ftpos= None
-			elif tpos == 'NYS':
+			elif tpos == 'DNS':
 				fstatus = 3
 				ftpos= None
 			else:
@@ -217,7 +214,7 @@ def grabIndividual(utaDb, overallRow):
 		# column 7: Speed & Pace
 		speedStr, paceStr = logFields[6].text.split('/')
 		fspeed, fpace = asFloatField(speedStr.strip()), asPaceField(paceStr.strip())
-		# column 8: Location
+		# column 8: Time of Day
 		ftod = logFields[7].text.strip()
 		ftodstamp = HmsToSeconds(ftod)
 		if (ftodstamp + 43200) < lastTodStamp:
@@ -309,7 +306,7 @@ def strTimeDelta(td, digits):
 def main():
 
 	# intital the SQLite3 database
-	utaDbName = "uta100_2023.db3"
+	utaDbName = "uta100_nodes.db3"
 	if os.path.exists(utaDbName):
 		utaDb = sqlite3.connect(utaDbName)
 		cleanPreviousResultData(utaDb)
@@ -317,8 +314,8 @@ def main():
 		utaDb = None
 
 	# grab the overall information for the offical race result web site
-	print("{}\n  {:18}{:>28}\n{}".format('='*50, 'Race Result', 'UTA100 2023', '-'*50))
-	overallUrl = "https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1"
+	print("{}\n  {:18}{:>28}\n{}".format('='*50, 'Race Result', 'UTA100 2024', '-'*50))
+	overallUrl = "https://www.multisportaustralia.com.au/races/ultra-trail-australia-2024/events/1/"
 
 	totalPages = 0
 	totalAthletes = 0
