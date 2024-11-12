@@ -5,8 +5,11 @@ from bs4 import BeautifulSoup
 import requests, re, json, os, time, datetime
 import sqlite3
 
-intervalTime = 5
+intervalTime = 7
+awaitTime = 300
+defaultAtheletes = 50
 hrefRoot = "https://www.multisportaustralia.com.au"
+entryUrl = hrefRoot + "/races/ultra-trail-australia-2024/events/1/"
 
 CategoryList = [
 	"18-19",
@@ -63,15 +66,20 @@ def grabOverAll(utaDb, overallUrl):
 	athleteQuery = "INSERT INTO uta100_athlete VALUES(NULL{})"
 
 	# grab the all overall page
-	curPage = 0
-	totalAthletes = 0
 	pCur = utaDb.cursor()
 	while overallUrl:
-		curPage += 1
+		curPage = fetchOverallPage(overallUrl)
 		print(" Overall Page {} ... ".format(curPage), end='', flush=True)
 
 		# fetch the overall page
-		response = requests.get(overallUrl)
+		while True:
+			try:
+				response = requests.get(overallUrl)
+				break
+			except:
+				print("\t!!! Connection refused by the server, sleep {} seconds then try again !!!".format(awaitTime))
+				time.sleep(awaitTime)
+				continue
 		html_doc = response.text
 
 		# initial the parsing tree
@@ -83,7 +91,7 @@ def grabOverAll(utaDb, overallUrl):
 		# deal with each row in the page
 		overallRecords = articleContainerTitle.find_all("tr")
 		pageAthletes = len(overallRecords)
-		totalAthletes += pageAthletes
+		totalAthletes = defaultAtheletes * (curPage - 1) + pageAthletes
 		print("\b\b\b\b\b, {}, {}".format(pageAthletes, totalAthletes))
 
 		for overallRecord in overallRecords:
@@ -105,7 +113,11 @@ def grabOverAll(utaDb, overallUrl):
 			# column 2, Name, BIB & Link to Individual Page
 			fhref = hrefRoot + overallFields[1].find("a").get('href')
 			name_bib = overallFields[1].text.replace('(','').replace(')','').split('#')
-			fname, fbib = name_bib[0].strip(), int(name_bib[1])
+			fname = name_bib[0].strip()
+			if name_bib[1].strip() != '':
+				fbib = int(name_bib[1].strip())
+			else:
+				fbib = ''
 			# column 3: Race Time
 			fracetime = overallFields[2].text.strip()
 			fracestamp = HmsToSeconds(fracetime)
@@ -182,7 +194,14 @@ def grabIndividual(utaDb, overallRow):
 	pCur = utaDb.cursor()
 
 	# fetch the individual page
-	response = requests.get(fhref)
+	while True:
+		try:
+			response = requests.get(fhref)
+			break
+		except:
+			print("\t!!! Connection refused by the server, sleep {} seconds then try again !!!".format(awaitTime))
+			time.sleep(awaitTime)
+			continue
 	html_doc = response.text
 
 	# initial the parsing tree
@@ -261,6 +280,13 @@ def sleepAnimation(itime):
 		time.sleep(1)
 	print("\b "+"\b"*(i+2), end='', flush=True)
 
+def fetchOverallPage(overallUrl):
+	match = re.search(r"\?page=(\d*)$", overallUrl)
+	if match:
+		return int(match.group(1))
+	else:
+		return 1
+
 def asIntField(s):
 	if s.isnumeric():
 		return int(s)
@@ -315,13 +341,12 @@ def main():
 
 	# grab the overall information for the offical race result web site
 	print("{}\n  {:18}{:>28}\n{}".format('='*50, 'Race Result', 'UTA100 2024', '-'*50))
-	overallUrl = "https://www.multisportaustralia.com.au/races/ultra-trail-australia-2024/events/1/"
 
 	totalPages = 0
 	totalAthletes = 0
 	totalStatus = [0, 0, 0]
 	lastPage = 0
-	for overallRow, curPage in grabOverAll(utaDb, overallUrl):
+	for overallRow, curPage in grabOverAll(utaDb, entryUrl):
 		if curPage != lastPage:
 			lastPage = curPage
 			# display the waiting animation
@@ -348,7 +373,7 @@ def main():
 		'Total Athletes', totalAthletes,
 		'Finished', totalStatus[0],
 		'DNF', totalStatus[1],
-		'NYS', totalStatus[2],
+		'DNS', totalStatus[2],
 		'='*50
 	))
 
