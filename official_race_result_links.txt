@@ -1,21 +1,22 @@
-Ultra Trail Australia (2023) / UTA100 / Overall
+Ultra Trail Australia (2024) / UTA100 / Overall
 
-https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1?page=1
-https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1?page=2
+https://www.multisportaustralia.com.au/races/ultra-trail-australia-2024/events/1?page=1
+https://www.multisportaustralia.com.au/races/ultra-trail-australia-2024/events/1?page=2
 ...
-https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1?page=17 (completed + DNF)
+https://www.multisportaustralia.com.au/races/ultra-trail-australia-2024/events/1?page=27 (completed + DNS)
 ...
-https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1?page=20 (DNF + NYS)
+https://www.multisportaustralia.com.au/races/ultra-trail-australia-2024/events/1?page=29 (DNS + DNF)
 ...
-https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1?page=23
+https://www.multisportaustralia.com.au/races/ultra-trail-australia-2024/events/1?page=33
 
-(Total Complete: 834 Completed + DNF + NYS)
+<<<
+    Total Records           1637
+    Finished                1317
+    DNF (Did Not Finish)     206
+    DNS (Did Not Start)      114
+>>>>
 
-	DNF: Did Not Finish
-	NYS: Not Yet Started
 
+Ultra Trail Australia (2024) / UTA100 / Results / #BIB
 
-
-Ultra Trail Australia (2023) / UTA100 / Results / #BIB
-
-https://www.multisportaustralia.com.au/races/ultra-trail-australia-2023/events/1/results/individuals/???
+https://www.multisportaustralia.com.au/races/ultra-trail-australia-2024/events/1/results/individuals/???
