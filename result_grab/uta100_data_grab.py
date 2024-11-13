@@ -10,7 +10,7 @@ awaitTime = 300
 pageRows = 50
 hrefRoot = "https://www.multisportaustralia.com.au"
 entryUrl = hrefRoot + "/races/ultra-trail-australia-2024/events/1"
-utaDbName = "./uta100_nodes.db3"
+utaDbName = "./uta100_2024.db3"
 
 CategoryList = [
 	"18-19",
