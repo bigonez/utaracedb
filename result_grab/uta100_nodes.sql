@@ -26,9 +26,8 @@ CREATE TABLE uta100_category (
 
     category    TEXT NOT NULL
 );
-INSERT INTO uta100_category VALUES(NULL, '18-24');
-INSERT INTO uta100_category VALUES(NULL, '25-29');
-INSERT INTO uta100_category VALUES(NULL, '30-34');
+INSERT INTO uta100_category VALUES(NULL, '18-19');
+INSERT INTO uta100_category VALUES(NULL, '20-34');
 INSERT INTO uta100_category VALUES(NULL, '35-39');
 INSERT INTO uta100_category VALUES(NULL, '40-44');
 INSERT INTO uta100_category VALUES(NULL, '45-49');
@@ -37,7 +36,7 @@ INSERT INTO uta100_category VALUES(NULL, '55-59');
 INSERT INTO uta100_category VALUES(NULL, '60-64');
 INSERT INTO uta100_category VALUES(NULL, '65-69');
 INSERT INTO uta100_category VALUES(NULL, '70-74');
-INSERT INTO uta100_category VALUES(NULL, '75+'  );
+INSERT INTO uta100_category VALUES(NULL, '75-79');
 
 -- Gender table --------------------------------------------------------------------------------
 DROP TABLE IF EXISTS uta100_gender;
@@ -59,26 +58,24 @@ CREATE TABLE uta100_location (
     odometer    REAL NOT NULL,
     cuteoff     TEXT
 );
-INSERT INTO uta100_location VALUES(NULL, 'Start',                 0.0,  NULL);
-INSERT INTO uta100_location VALUES(NULL, 'Scenic World',          4.1,  NULL);
-INSERT INTO uta100_location VALUES(NULL, 'Furber Pass',           6.2,  NULL);
-INSERT INTO uta100_location VALUES(NULL, 'Golden Stairs',         10.1, '10:22');
-INSERT INTO uta100_location VALUES(NULL, 'Duncan Pass',           21.2, NULL);
-INSERT INTO uta100_location VALUES(NULL, 'Foggy Knob Arrive',     31.2, NULL);
-INSERT INTO uta100_location VALUES(NULL, 'Foggy Knob Depart',     31.2, '15:00');
-INSERT INTO uta100_location VALUES(NULL, 'IronPot',               33.6, NULL);
-INSERT INTO uta100_location VALUES(NULL, 'Six Ft Track Arrive',   44.7, NULL);
-INSERT INTO uta100_location VALUES(NULL, 'Six Ft Track Depart',   44.7, '18:50');
-INSERT INTO uta100_location VALUES(NULL, 'Aquatic Centre Arrive', 55.7, NULL);
-INSERT INTO uta100_location VALUES(NULL, 'Aquatic Centre Depart', 55.7, '22:00');
-INSERT INTO uta100_location VALUES(NULL, 'Fairmount Arrive',      69.1, NULL);
-INSERT INTO uta100_location VALUES(NULL, 'Fairmount Depart',      69.1, '02:35');
-INSERT INTO uta100_location VALUES(NULL, 'QVH Arrive',            78.1, NULL);
-INSERT INTO uta100_location VALUES(NULL, 'QVH Depart',            78.1, '05:45');
-INSERT INTO uta100_location VALUES(NULL, 'TWM',                   94.1, NULL);
-INSERT INTO uta100_location VALUES(NULL, 'Furber Stairs',         98.9, NULL);
+INSERT INTO uta100_location VALUES(NULL, 'Start',                 0.0,  '07:25');
+INSERT INTO uta100_location VALUES(NULL, 'Narrow Neck',           2.8,  NULL);
+INSERT INTO uta100_location VALUES(NULL, 'Medow Gap',             16.5, '10:45');
+INSERT INTO uta100_location VALUES(NULL, 'Foggy Knob Arrive',     24.0, NULL);
+INSERT INTO uta100_location VALUES(NULL, 'Foggy Knob Depart',     24.0, '12:20');
+INSERT INTO uta100_location VALUES(NULL, 'Six Ft Track Arrive',   37.6, NULL);
+INSERT INTO uta100_location VALUES(NULL, 'Six Ft Track Depart',   37.6, '16:05 ');
+INSERT INTO uta100_location VALUES(NULL, 'Aquatic Centre Arrive', 56.1, NULL);
+INSERT INTO uta100_location VALUES(NULL, 'Aquatic Centre Depart', 56.1, '21:00');
+INSERT INTO uta100_location VALUES(NULL, 'Gordon Falls',          63.7, NULL);
+INSERT INTO uta100_location VALUES(NULL, 'Fairmount Arrive',      66.9, NULL);
+INSERT INTO uta100_location VALUES(NULL, 'Fairmount Depart',      66.9, '00:50');
+INSERT INTO uta100_location VALUES(NULL, 'QVH Arrive',            78.3, NULL);
+INSERT INTO uta100_location VALUES(NULL, 'QVH Depart',            78.3, '04:55');
+INSERT INTO uta100_location VALUES(NULL, 'EAS',                   91.5, NULL);
+INSERT INTO uta100_location VALUES(NULL, 'Echo Point',            97.4, NULL);
 INSERT INTO uta100_location VALUES(NULL, 'BoardWalk',             99.8, NULL);
-INSERT INTO uta100_location VALUES(NULL, 'Finish',               100.1, '11:54');
+INSERT INTO uta100_location VALUES(NULL, 'Finish',               100.1, '11:25');
 
 -- Status table --------------------------------------------------------------------------------
 DROP TABLE IF EXISTS uta100_status;
