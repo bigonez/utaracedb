@@ -9,83 +9,126 @@ intervalTime = 7
 awaitTime = 300
 pageRows = 50
 hrefRoot = "https://www.multisportaustralia.com.au"
-entryUrl = hrefRoot + "/races/ultra-trail-australia-2024/events/1"
-utaDbName = "./uta100_2024.db3"
+entryUrl = hrefRoot + "/races/ultra-trail-australia-2025/events/"
+utaDbName = "./uta_2025.db3"
 
-CategoryList = [
-	"18-19",
-	"20-34",
-	"35-39",
-	"40-44",
-	"45-49",
-	"50-54",
-	"55-59",
-	"60-64",
-	"65-69",
-	"70-74",
-	"75-79"
-]
-GenderList = [
-	"Male",
-	"Female"
-]
-LocationList = [
-	"Start",
-	"Narrow Neck",
-	"Medow Gap",
-	"Foggy Knob Arrive",
-	"Foggy Knob Depart",
-	"Six Ft Track Arrive",
-	"Six Ft Track Depart",
-	"Aquatic Centre Arrive",
-	"Aquatic Centre Depart",
-	"Gordon Falls",
-	"Fairmount Arrive",
-	"Fairmount Depart",
-	"QVH Arrive",
-	"QVH Depart",
-	"EAS",
-	"Echo Point",
-	"BoardWalk",
-	"Finish"
-]
+EventList = {
+	1: "100",
+	5: "Miler"
+}
+CategoryList = {
+	"18-19": 4,
+	"20-34": 5,
+	"35-39": 7,
+	"40-44": 8,
+	"45-49": 9,
+	"50-54": 10,
+	"55-59": 11,
+	"60-64": 12,
+	"65-69": 13,
+	"70-74": 14,
+	"75-79": 15
+}
+GenderList = {
+	"Male": 1,
+	"Female": 2,
+	"Unknown": 0
+}
+LocationList = {
+	1: [
+		"Start",
+		"Narrow Neck",
+		"Medow Gap",
+		"Foggy Knob Arr",
+		"Foggy Knob Dep",
+		"Six Ft Track Arrive",
+		"Six Ft Track Depart",
+		"SIXFT-WP",
+		"Aquatic Centre Arrive",
+		"Aquatic Centre Depart",
+		"Cliff Drive",
+		"Echo Point",
+		"Gordon Falls",
+		"Fairmont Arrive",
+		"Fairmont Depart",
+		"QVH Arrive",
+		"QVH Depart",
+		"EAS-A",
+		"Treatment Works",
+		"Furber Stairs",
+		"BoardWalk",
+		"Finish"
+	],
+	5: [
+		"Start",
+		"Govett's Leap",
+		"Perrys Lookdown",
+		"Fortress Ridge",
+		"Forress Ridge 2",
+		"Hydro Majestic",
+		"Hydro Majestic Dep",
+		"Narrow Neck",
+		"Medow Gap",
+		"Foggy Knob Arr",
+		"Foggy Knob Dep",
+		"Six Ft Track Arrive",
+		"SIXFT-WP",
+		"Six Foot Arrive 2nd",
+		"Six Foot Depart 2nd",
+		"Aquatic Centre Arrive",
+		"Aquatic Centre Depart",
+		"Cliff Drive",
+		"Echo Point",
+		"Gordon Falls",
+		"Fairmont Arrive",
+		"Fairmont Depart",
+		"QVH Arrive",
+		"QVH Depart",
+		"EAS-Arr",
+		"Treatment Works",
+		"Furber",
+		"BoardWalk",
+		"Finish"
+	]
+}
 
 def cleanPreviousResultData(utaDb):
 	pCur = utaDb.cursor()
 
 	pCur.execute( "begin transaction;" )
-	pCur.execute( "delete from uta100_athlete;" )								# clean the table of athlete
-	pCur.execute( "delete from sqlite_sequence where name='uta100_athlete';" )	# reset the auto increment field
-	pCur.execute( "delete from uta100_racelog;" )								# clean the table of race result
-	pCur.execute( "delete from sqlite_sequence where name='uta100_racelog';" )	# reset the auto increment field
+	pCur.execute( "delete from uta_athlete;" )								# clean the table of athlete
+	pCur.execute( "delete from sqlite_sequence where name='uta_athlete';" )	# reset the auto increment field
+	pCur.execute( "delete from uta_racelog;" )								# clean the table of race result
+	pCur.execute( "delete from sqlite_sequence where name='uta_racelog';" )	# reset the auto increment field
 	pCur.execute( "commit transaction;" )
 
 	pCur.close()
 	utaDb.commit()
 
-def getPreviousInfo(hk100Db):
-	try:
-		pCur = hk100Db.cursor()
-		pRes = pCur.execute( "SELECT max(id) AS pid FROM uta100_athlete" )
+def getEventPreviousInfo(event, utaDb):
+	#try:
+	if 1:
+		pCur = utaDb.cursor()
+		pRes = pCur.execute( "SELECT COUNT(id) AS pid FROM uta_athlete WHERE event=?", (event[0],))
 		lastPid = pRes.fetchone()[0]
 		if lastPid is None :
 			lastPid = 0
 
-		pRes = pCur.execute("SELECT sl.id AS status, IFNULL(st.st, 0) AS st FROM uta100_status AS sl \
-				LEFT JOIN (SELECT status, count(id) AS st FROM uta100_athlete GROUP BY status) AS st \
-				ON sl.id = st.status ORDER BY sl.id ASC")
+		pRes = pCur.execute("SELECT sl.id AS status, IFNULL(st.st, 0) AS st FROM uta_status AS sl \
+				LEFT JOIN (SELECT status, count(id) AS st FROM uta_athlete WHERE event=? GROUP BY status) AS st \
+				ON sl.id = st.status ORDER BY sl.id ASC", (event[0],))
 		statusList = []
 		for slRec in pRes.fetchall():
 			statusList.append(int(slRec[1]))
 
 		pCur.close()
-	except:
-		lastPid = 0
+	#except:
+	#	lastPid = 0
 
 	return lastPid, statusList
 
-def grabOverAll(utaDb, overallUrl, skipAhead):
-	athleteQuery = "INSERT INTO uta100_athlete VALUES(NULL{})"
+def grabOverAll(utaDb, event, overallUrl, skipAhead):
+	athleteQuery = "INSERT INTO uta_athlete VALUES(NULL{})"
 
 	# grab the all overall page
 	pCur = utaDb.cursor()
@@ -123,6 +166,8 @@ def grabOverAll(utaDb, overallUrl, skipAhead):
 
 		for overallRecord in overallRecords:
 			overallFields = overallRecord.find_all("td")
+
+			fevent = event[0]
 			# column 1: Position & Status
 			tpos = overallFields[0].text
 			if tpos.isnumeric():
@@ -152,13 +197,13 @@ def grabOverAll(utaDb, overallUrl, skipAhead):
 				fracetime = None
 			# column 4: Category & Position
 			category_pos = overallFields[3].text.replace(')','').replace('\n','').split('(')
-			fcategory = CategoryList.index(category_pos[0]) + 1
+			fcategory = CategoryList.get(category_pos[0])
 			if len(category_pos) == 2:
 				fcpos = int(category_pos[1])
 			else:
 				fcpos = None
 			# column 5: Gender & Position
-			fgender = GenderList.index(overallFields[4].find('a').text) + 1
+			fgender = GenderList.get(overallFields[4].find('a').text)
 			has_gpos = overallFields[4].find('span')
 			if has_gpos:
 				fgpos = int(overallFields[4].find('span').text[1:-1])
@@ -167,6 +212,7 @@ def grabOverAll(utaDb, overallUrl, skipAhead):
 
 			# form the dataset of one athlete
 			athleteData = [
+				fevent,
 				fname,
 				fbib,
 				fcategory,
@@ -209,7 +255,7 @@ def grabOverAll(utaDb, overallUrl, skipAhead):
 
 	pCur.close()
 
-def grabIndividual(utaDb, overallRow):
+def grabIndividual(utaDb, event, overallRow):
 	pid, fbib, fname, fstatus, fhref = overallRow
 	print(" . {}, #{}, {}, {} ... ".format(pid, fbib, fname, fstatus), end='', flush=True)
 	if fstatus not in [1, 2]:
@@ -217,7 +263,7 @@ def grabIndividual(utaDb, overallRow):
 		print("\b\b\b\b\b, 0 ")
 		return
 
-	raceLogQuery = "INSERT INTO uta100_racelog VALUES(NULL{})"
+	raceLogQuery = "INSERT INTO uta_racelog VALUES(NULL{})"
 	pCur = utaDb.cursor()
 
 	# fetch the individual page
@@ -244,9 +290,10 @@ def grabIndividual(utaDb, overallRow):
 	for logRecord in logRecords:
 		logFields = logRecord.find_all("td")
 
+		fevent = event[0]
 		# column 1: Location
 		locationName = logFields[0].text.strip()
-		flocation = LocationList.index(locationName) + 1
+		flocation = LocationList[fevent].index(locationName) + 1
 		# column 2: split time
 		fsplittime = logFields[1].text.strip()
 		# column 3: race time
@@ -269,6 +316,7 @@ def grabIndividual(utaDb, overallRow):
 
 		# form the dataset of one race result log
 		raceLogData = [
+			fevent,
 			pid,
 			fbib,
 			flocation,
@@ -356,22 +404,21 @@ def strTimeDelta(td, digits):
 
 	return prefix + "{:d}:{:02d}:{:0{}.{}f}".format(hours, minutes, seconds, sw, digits)
 
-def main(entryUrl, utaDbName):
-
+def main(curEvent, entryUrl, utaDbName):
 	# intital the SQLite3 database
 	if os.path.exists(utaDbName):
 		utaDb = sqlite3.connect(utaDbName)
 		#-- cleanPreviousResultData(utaDb)
-		lastPid, statusList = getPreviousInfo(utaDb)
+		lastPid, statusList = getEventPreviousInfo(curEvent, utaDb)
 	else:
 		utaDb = None
 		print("\t!!! The database, {}, is missing. !!!".format(utaDbName))
 		return
 
 	# grab the overall information for the offical race result web site
-	print("{}\n  {:18}{:>28}\n{}".format('='*50, 'Race Result', 'UTA100 2024', '-'*50))
+	print("{}\n  {:18}{:>28}\n{}".format('='*50, 'Race Result', 'UTA{} 2025'.format(event[1]), '-'*50))
 
-	overallUrl = entryUrl
+	overallUrl = entryUrl + str(curEvent[0])
 	if lastPid > 0:
 		overallUrl += "?page={}".format(lastPid // pageRows + 1)
 
@@ -379,14 +426,14 @@ def main(entryUrl, utaDbName):
 	totalAthletes = lastPid
 	totalStatus = statusList
 	lastPage = 0
-	for overallRow, curPage in grabOverAll(utaDb, overallUrl, lastPid % pageRows):
+	for overallRow, curPage in grabOverAll(utaDb, curEvent, overallUrl, lastPid % pageRows):
 		if curPage != lastPage:
 			lastPage = curPage
 			# display the waiting animation
 			sleepAnimation(intervalTime)
 
 		# grab the individual race result for finished & DNF only
-		grabIndividual(utaDb, overallRow)
+		grabIndividual(utaDb, curEvent, overallRow)
 
 		# update the stats
 		totalPages = curPage
@@ -413,7 +460,8 @@ def main(entryUrl, utaDbName):
 if __name__ == '__main__':
 	startTime = time.time()
 
-	main(entryUrl, utaDbName)
+	for event in EventList.items():
+		main(event, entryUrl, utaDbName)
 
 	finishTime = time.time()
 	processTime = datetime.timedelta(seconds=(finishTime - startTime))
