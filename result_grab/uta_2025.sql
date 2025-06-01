@@ -208,10 +208,10 @@ CREATE TABLE uta_racelog (
 -- Athlete & Location view ---------------------------------------------------------------------
 DROP VIEW IF EXISTS uta_athlete_location;
 CREATE VIEW uta_athlete_location AS
-    SELECT A.id AS pid, bib, L.id AS location, L.name AS name, odometer
+    SELECT A.id AS pid, A.event AS event, bib, L.location AS location, L.name AS name, odometer
     FROM uta_location AS L
     JOIN uta_athlete AS A
-    WHERE A.status = 1
+    WHERE A.status = 1 AND A.event = L.event
     ORDER BY pid, location;
 
 -- Race Logged Record with Full Location view --------------------------------------------------
@@ -235,45 +235,45 @@ CREATE VIEW uta_missing_racelog AS
 -- Race Time Proportion of each athlete x middle location --------------------------------------
 DROP VIEW IF EXISTS uta_racelog_proportion;
 CREATE VIEW uta_racelog_proportion AS
-    SELECT C.location, C.pid,
+    SELECT C.event, C.location, C.pid,
         C.racestamp - P.racestamp AS cpStamp, N.racestamp - P.racestamp AS npStamp,
         (C.racestamp - P.racestamp) * 1.0 / (N.racestamp - P.racestamp) AS proportion
       FROM uta_full_racelog AS P, uta_full_racelog AS C, uta_full_racelog AS N
-      WHERE P.pid = C.pid AND C.pid = N.pid AND P.location = C.location - 1 AND N.location = C.location + 1
+      WHERE P.event = C.event AND C.event = N.event AND P.pid = C.pid AND C.pid = N.pid AND P.location = C.location - 1 AND N.location = C.location + 1
       AND cpStamp NOT NULL AND npStamp NOT NULL
-      ORDER BY C.location, C.pid;
+      ORDER BY C.event, C.location, C.pid;
 
 -- Race Time Proportion's Mean of each middle location -----------------------------------------
 DROP VIEW IF EXISTS uta_racelog_mean;
 CREATE VIEW uta_racelog_mean AS
-    SELECT location, COUNT(pid) AS total, AVG(proportion) AS mean
+    SELECT event, location, COUNT(pid) AS total, AVG(proportion) AS mean
     FROM uta_racelog_proportion
-    GROUP BY location;
+    GROUP BY event, location;
 
 -- Race Time Proportion's Standard Deviation of each middle location ---------------------------
 DROP VIEW IF EXISTS uta_racelog_std;
 CREATE VIEW uta_racelog_std AS
-    SELECT lm.location AS location, lm.total AS total, lm.mean AS mean, SQRT(SUM(sq)/total) AS std
+    SELECT lm.event AS event, lm.location AS location, lm.total AS total, lm.mean AS mean, SQRT(SUM(sq)/total) AS std
     FROM uta_racelog_mean AS lm
     LEFT JOIN
-     (SELECT P.location, pid, proportion, mean, (proportion - mean) * (proportion - mean) AS sq
+     (SELECT P.event, P.location, pid, proportion, mean, (proportion - mean) * (proportion - mean) AS sq
       FROM uta_racelog_proportion AS P
       JOIN uta_racelog_mean AS M
-      WHERE P.location = M.location) AS sq
-    ON lm.location = sq.location
-    GROUP BY lm.location;
+      WHERE P.event = M.event AND P.location = M.location) AS sq
+    ON lm.event = sq.event AND lm.location = sq.location
+    GROUP BY lm.event, lm.location;
 
 -- Log Error Detaction by 6 times of stanard deviation -----------------------------------------
 DROP VIEW IF EXISTS uta_racelog_error;
 CREATE VIEW uta_racelog_error AS
-    SELECT pid, P.location, proportion, mean, std,
+    SELECT pid, P.event, P.location, proportion, mean, std,
       proportion - mean AS ldiff,
       mean - std * 6.0 AS lmin, mean + std * 6.0 AS lmax,
       proportion < (mean - std * 6.0) OR proportion > (mean + std * 6.0) AS oor
     FROM uta_racelog_proportion AS P
     LEFT JOIN uta_racelog_std AS S
-    ON P.location = S.location
-    WHERE oor = 1 ORDER BY pid, P.location;
+    ON P.event = S.event AND P.location = S.location
+    WHERE oor = 1 ORDER BY pid, P.event, P.location;
 
 -- Changes between the original log and the repaired dataset -----------------------------------
 DROP VIEW IF EXISTS uta_repair_changes;
@@ -292,33 +292,33 @@ CREATE VIEW uta_repair_changes AS
 -- proportion data based on the final race result ----------------------------------------------
 DROP VIEW IF EXISTS uta_final_proportion;
 CREATE VIEW uta_final_proportion AS
-    SELECT C.location, C.pid,
+    SELECT C.event, C.location, C.pid,
         C.racestamp - P.racestamp AS cpStamp, N.racestamp - P.racestamp AS npStamp,
         (C.racestamp - P.racestamp) * 1.0 / (N.racestamp - P.racestamp) AS proportion
       FROM uta_finalresult AS P, uta_finalresult AS C, uta_finalresult AS N
-      WHERE P.pid = C.pid AND C.pid = N.pid AND P.location = C.location - 1 AND N.location = C.location + 1
+      WHERE P.event = C.event AND C.event = N.event AND P.pid = C.pid AND C.pid = N.pid AND P.location = C.location - 1 AND N.location = C.location + 1
       AND cpStamp NOT NULL AND npStamp NOT NULL
-      ORDER BY C.location, C.pid;
+      ORDER BY C.event, C.location, C.pid;
 
 -- Final Proportion's Mean of each middle location ---------------------------------------------
 DROP VIEW IF EXISTS uta_final_mean;
 CREATE VIEW uta_final_mean AS
-    SELECT location, COUNT(pid) AS total, AVG(proportion) AS mean
+    SELECT event, location, COUNT(pid) AS total, AVG(proportion) AS mean
     FROM uta_final_proportion
-    GROUP BY location;
+    GROUP BY event, location;
 
 -- Final Proportion's Standard Deviation of each middle location -------------------------------
 DROP VIEW IF EXISTS uta_final_std;
 CREATE VIEW uta_final_std AS
-    SELECT lm.location AS location, lm.total AS total, lm.mean AS mean, SQRT(SUM(sq)/total) AS std
+    SELECT lm.event AS event, lm.location AS location, lm.total AS total, lm.mean AS mean, SQRT(SUM(sq)/total) AS std
     FROM uta_final_mean AS lm
     LEFT JOIN
-     (SELECT P.location, pid, proportion, mean, (proportion - mean) * (proportion - mean) AS sq
+     (SELECT P.event, P.location, pid, proportion, mean, (proportion - mean) * (proportion - mean) AS sq
       FROM uta_final_proportion AS P
       JOIN uta_final_mean AS M
-      WHERE P.location = M.location) AS sq
-    ON lm.location = sq.location
-    GROUP BY lm.location;
+      WHERE P.event = M.event AND P.location = M.location) AS sq
+    ON lm.event = sq.event AND lm.location = sq.location
+    GROUP BY lm.event, lm.location;
 
 
 ------------------------------------------------------------------------------------------------
