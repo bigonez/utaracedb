@@ -9,14 +9,55 @@ https://www.multisportaustralia.com.au/races/ultra-trail-australia-2024/events/1
 ...
 https://www.multisportaustralia.com.au/races/ultra-trail-australia-2024/events/1?page=33
 
-<<<
+<<<<
     Total Records           1637
-    Finished                1317
-    DNF (Did Not Finish)     206
-    DNS (Did Not Start)      114
+    Finished                1317 (80.5%)
+    DNF (Did Not Finish)     206 (12.6%)
+    DNS (Did Not Start)      114 (7.0%)
 >>>>
 
 
 Ultra Trail Australia (2024) / UTA100 / Results / #BIB
 
 https://www.multisportaustralia.com.au/races/ultra-trail-australia-2024/events/1/results/individuals/???
+
+
+
+Ultra Trail Australia (2025) / UTA100 / Overall
+
+https://www.multisportaustralia.com.au/races/ultra-trail-australia-2025/events/1?page=1
+...
+https://www.multisportaustralia.com.au/races/ultra-trail-australia-2025/events/1?page=36
+
+
+Ultra Trail Australia (2025) / UTA100 / Results / (#BIB) Name
+
+https://www.multisportaustralia.com.au/races/ultra-trail-australia-2025/events/1/results/individuals/????
+
+<<<<
+    Total Records           1795
+    Finished                1281 (71.4%)
+    DNF (Did Not Finish)     307 (17.1%)
+    DNS (Did Not Start)      207 (11.5%)
+    Total Overall Pages       36
+>>>>
+
+
+Ultra Trail Australia (2025) / UTA Miler / Overall
+
+https://www.multisportaustralia.com.au/races/ultra-trail-australia-2025/events/5?page=1
+...
+https://www.multisportaustralia.com.au/races/ultra-trail-australia-2025/events/5?page=8
+
+
+Ultra Trail Australia (2025) / UTA Miler / Results / (#BIB) Name
+
+https://www.multisportaustralia.com.au/races/ultra-trail-australia-2025/events/5/results/individuals/???
+
+<<<<
+    Total Records            398
+    Finished                 304 (76.4%)
+    DNF (Did Not Finish)      70 (17.6%)
+    DNS (Did Not Start)       24 (6.0%)
+    Total Overall Pages        8
+>>>>
