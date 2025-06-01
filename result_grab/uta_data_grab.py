@@ -447,13 +447,17 @@ def main(curEvent, entryUrl, utaDbName):
 		utaDb.close()
 
 	# display the summary information
-	print("{}\n  {:>20}: {}\n  {:>20}: {}\n  {:>20}: {}\n  {:>20}: {}\n  {:>20}: {}\n{}".format(
+	if totalAthletes > 0:
+		percentStatus = [round(ts / totalAthletes * 100, 1) for ts in totalStatus]
+	else:
+		percentStatus = ['n/a', 'n/a', 'n/a']
+	print("{}\n  {:>20}: {}\n  {:>20}: {}\n  {:>20}: {} ({}%)\n  {:>20}: {} ({}%)\n  {:>20}: {} ({}%)\n{}".format(
 		'-'*50,
 		'Total Overall Pages', totalPages,
 		'Total Athletes', totalAthletes,
-		'Finished', totalStatus[0],
-		'DNF', totalStatus[1],
-		'DNS', totalStatus[2],
+		'Finished', totalStatus[0], percentStatus[0],
+		'DNF', totalStatus[1], percentStatus[1],
+		'DNS', totalStatus[2], percentStatus[2],
 		'='*50
 	))
 
