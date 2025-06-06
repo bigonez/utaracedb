@@ -73,7 +73,7 @@ CREATE TABLE uta_location (
     abbr        TEXT,
     alias       TEXT,
     odometer    REAL NOT NULL,
-    cuteoff     TEXT
+    cutoff     TEXT
 );
 -- locations for UTA100 ------------------------------------------------------------------------
 INSERT INTO uta_location VALUES(NULL, 1, 1,  'Start',                 'Start',           'Scenic World',                0.0, '07:25');
@@ -95,7 +95,7 @@ INSERT INTO uta_location VALUES(NULL, 1, 16, 'QVH Arrive',            'CP6',    
 INSERT INTO uta_location VALUES(NULL, 1, 17, 'QVH Depart',            'CP6',             'Queen Victoria Hospital',     79.6, '05:10');
 INSERT INTO uta_location VALUES(NULL, 1, 18, 'EAS-A',                 'EAS-A',           'Emergency Aid Station',       92.8, NULL);
 INSERT INTO uta_location VALUES(NULL, 1, 19, 'Treatment Works',       'Treatment Works', 'Treatment Works',             95.9, NULL);
-INSERT INTO uta_location VALUES(NULL, 1, 20, 'Furber Stairs',         'Furber Stairs',   'Furber Stairs',               100.4, NULL);
+INSERT INTO uta_location VALUES(NULL, 1, 20, 'Furber Stairs',         'Furber Steps',    'Furber Steps',                100.4, NULL);
 INSERT INTO uta_location VALUES(NULL, 1, 21, 'BoardWalk',             'BoardWalk',       'BoardWalk',                   101.3, NULL);
 INSERT INTO uta_location VALUES(NULL, 1, 22, 'Finish',                'Finish',          'Scenic World',                101.7, '11:42');
 -- locations for UTA Miler ---------------------------------------------------------------------
@@ -125,7 +125,7 @@ INSERT INTO uta_location VALUES(NULL, 5, 23, 'QVH Arrive',            'CP12',   
 INSERT INTO uta_location VALUES(NULL, 5, 24, 'QVH Depart',            'CP12',            'Queen Victoria Hospital',     140.5, '19:10');
 INSERT INTO uta_location VALUES(NULL, 5, 25, 'EAS-Arr',               'EAS-Arr',         'Emergency Aid Station',       153.7, NULL);
 INSERT INTO uta_location VALUES(NULL, 5, 26, 'Treatment Works',       'Treatment Works', 'Treatment Works',             156.8, NULL);
-INSERT INTO uta_location VALUES(NULL, 5, 27, 'Furber',                'Furber',          'Furber',                      161.2, NULL);
+INSERT INTO uta_location VALUES(NULL, 5, 27, 'Furber',                'Furber Steps',    'Furber Steps',                161.2, NULL);
 INSERT INTO uta_location VALUES(NULL, 5, 28, 'BoardWalk',             'BoardWalk',       'BoardWalk',                   162.2, NULL);
 INSERT INTO uta_location VALUES(NULL, 5, 29, 'Finish',                'Finish',          'Scenic World',                162.8, '01:30');
 
