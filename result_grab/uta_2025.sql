@@ -93,7 +93,7 @@ INSERT INTO uta_location VALUES(NULL, 1, 14, 'Fairmount Arrive',      'CP5',    
 INSERT INTO uta_location VALUES(NULL, 1, 15, 'Fairmount Depart',      'CP5',             'Fairmount Resort',            68.5, '01:20');
 INSERT INTO uta_location VALUES(NULL, 1, 16, 'QVH Arrive',            'CP6',             NULL,                          79.6, NULL);
 INSERT INTO uta_location VALUES(NULL, 1, 17, 'QVH Depart',            'CP6',             'Queen Victoria Hospital',     79.6, '05:10');
-INSERT INTO uta_location VALUES(NULL, 1, 18, 'EAS-A',                 'EAS-A',           'Emergency Aid Station',       92.8, NULL);
+INSERT INTO uta_location VALUES(NULL, 1, 18, 'EAS-A',                 'EAS',             'Emergency Aid Station',       92.8, NULL);
 INSERT INTO uta_location VALUES(NULL, 1, 19, 'Treatment Works',       'Treatment Works', 'Treatment Works',             95.9, NULL);
 INSERT INTO uta_location VALUES(NULL, 1, 20, 'Furber Stairs',         'Furber Steps',    'Furber Steps',                100.4, NULL);
 INSERT INTO uta_location VALUES(NULL, 1, 21, 'BoardWalk',             'BoardWalk',       'BoardWalk',                   101.3, NULL);
@@ -112,8 +112,8 @@ INSERT INTO uta_location VALUES(NULL, 5, 10, 'Foggy Knob Arr',        'CP7',    
 INSERT INTO uta_location VALUES(NULL, 5, 11, 'Foggy Knob Dep',        'CP7',             'Foggy Knob',                  77.5, '01:10');
 INSERT INTO uta_location VALUES(NULL, 5, 12, 'Six Ft Track Arrive',   'CP8',             'Six Foot Track Outbound',     91.0, '05:00');
 INSERT INTO uta_location VALUES(NULL, 5, 13, 'SIXFT-WP',              'SIXFT-WP',        'Six Foot Track WP',           106.4, NULL);
-INSERT INTO uta_location VALUES(NULL, 5, 14, 'Six Foot Arrive 2nd',   'CP9-2',           NULL,                          106.7, NULL);
-INSERT INTO uta_location VALUES(NULL, 5, 15, 'Six Foot Depart 2nd',   'CP9-2',           'Six Foot Track Inbound',      106.7, '09:00');
+INSERT INTO uta_location VALUES(NULL, 5, 14, 'Six Foot Arrive 2nd',   'CP9',             NULL,                          106.7, NULL);
+INSERT INTO uta_location VALUES(NULL, 5, 15, 'Six Foot Depart 2nd',   'CP9',             'Six Foot Track Inbound',      106.7, '09:00');
 INSERT INTO uta_location VALUES(NULL, 5, 16, 'Aquatic Centre Arrive', 'CP10',            NULL,                          117.5, NULL);
 INSERT INTO uta_location VALUES(NULL, 5, 17, 'Aquatic Centre Depart', 'CP10',            'Katoomba Aquatic Centre',     117.5, '11:50');
 INSERT INTO uta_location VALUES(NULL, 5, 18, 'Cliff Drive',           'Cliff Drive',     'Cliff Drive',                 119.1, NULL);
@@ -123,7 +123,7 @@ INSERT INTO uta_location VALUES(NULL, 5, 21, 'Fairmont Arrive',       'CP11',   
 INSERT INTO uta_location VALUES(NULL, 5, 22, 'Fairmont Depart',       'CP11',            'Fairmont Resort',             129.4, '15:35');
 INSERT INTO uta_location VALUES(NULL, 5, 23, 'QVH Arrive',            'CP12',            NULL,                          140.5, NULL);
 INSERT INTO uta_location VALUES(NULL, 5, 24, 'QVH Depart',            'CP12',            'Queen Victoria Hospital',     140.5, '19:10');
-INSERT INTO uta_location VALUES(NULL, 5, 25, 'EAS-Arr',               'EAS-Arr',         'Emergency Aid Station',       153.7, NULL);
+INSERT INTO uta_location VALUES(NULL, 5, 25, 'EAS-Arr',               'EAS',             'Emergency Aid Station',       153.7, NULL);
 INSERT INTO uta_location VALUES(NULL, 5, 26, 'Treatment Works',       'Treatment Works', 'Treatment Works',             156.8, NULL);
 INSERT INTO uta_location VALUES(NULL, 5, 27, 'Furber',                'Furber Steps',    'Furber Steps',                161.2, NULL);
 INSERT INTO uta_location VALUES(NULL, 5, 28, 'BoardWalk',             'BoardWalk',       'BoardWalk',                   162.2, NULL);
