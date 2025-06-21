@@ -22,6 +22,11 @@ DROP VIEW IF EXISTS uta_racelog_std;
 DROP VIEW IF EXISTS uta_racelog_error;
 DROP VIEW IF EXISTS uta_repair_changes;
 
+DROP TABLE IF EXISTS uta_pfresidual;
+
+DROP VIEW IF EXISTS uta_percentage;
+
+
 ------------------------------------------------------------------------------------------------
 END TRANSACTION;
 ------------------------------------------------------------------------------------------------
